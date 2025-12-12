@@ -26,11 +26,11 @@ export function WelcomeModal({ open, onSelectSector }: WelcomeModalProps) {
       >
         {/* Header */}
         <div className="bg-gradient-to-br from-primary to-primary/80 px-8 py-10 text-center text-primary-foreground">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Welcome to ImpactOS
+          <h1 className="text-2xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
+            Welcome to Verity
           </h1>
           <p className="mt-2 text-primary-foreground/80">
-            Let's get you set up. We'll tailor your metrics and templates based on your mission.
+            Let's validate your impact. We'll tailor your metrics and templates based on your mission.
           </p>
         </div>
 

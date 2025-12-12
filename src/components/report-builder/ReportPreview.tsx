@@ -98,11 +98,11 @@ export function ReportPreview({
       {heroOutcome && (
         <div className="border-b border-slate-200 bg-slate-50 px-8 py-10 text-center">
           <p className="mb-2 text-sm font-medium uppercase tracking-wide text-slate-500">
-            Key Impact
+            Verified Impact
           </p>
           <p
             className="text-5xl font-bold"
-            style={{ color: primaryColor }}
+            style={{ color: "#059669" }}
           >
             {heroOutcome.unit === "$" && "$"}
             {heroOutcome.value.toLocaleString()}

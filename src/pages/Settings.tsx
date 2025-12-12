@@ -8,11 +8,11 @@ import { Upload, Palette, Building2, User, Bell } from "lucide-react";
 import { mockOrganization, mockUser } from "@/lib/mockData";
 
 export default function Settings() {
-  const [primaryColor, setPrimaryColor] = useState(mockOrganization.primaryColor);
-  const [secondaryColor, setSecondaryColor] = useState(mockOrganization.secondaryColor);
-  const [highlightColor, setHighlightColor] = useState("#10B981");
-  const [neutralBg, setNeutralBg] = useState("#FFFFFF");
-  const [neutralSurface, setNeutralSurface] = useState("#F8FAFC");
+  const [primaryColor, setPrimaryColor] = useState("#0F172A");
+  const [secondaryColor, setSecondaryColor] = useState("#059669");
+  const [highlightColor, setHighlightColor] = useState("#D97706");
+  const [neutralBg, setNeutralBg] = useState("#F8F9FA");
+  const [neutralSurface, setNeutralSurface] = useState("#FFFFFF");
   const [orgName, setOrgName] = useState(mockOrganization.name);
 
   // Apply colors to CSS variables for live preview
