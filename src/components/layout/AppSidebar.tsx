@@ -21,16 +21,16 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out",
+        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-primary transition-all duration-300 ease-in-out",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-sidebar-border px-4">
+      <div className="flex h-16 items-center border-b border-primary-foreground/20 px-4">
         <div className="flex items-center gap-3">
-          <VerityLogo className="h-8 w-8 text-primary" />
+          <VerityLogo className="h-8 w-auto" />
           {!collapsed && (
-            <span className="text-lg text-sidebar-primary-foreground" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
+            <span className="text-lg text-white" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
               Verity
             </span>
           )}
@@ -45,10 +45,10 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === "/"}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white",
               collapsed && "justify-center px-2"
             )}
-            activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+            activeClassName="bg-white/20 text-white"
           >
             <item.icon className="h-5 w-5 shrink-0" />
             {!collapsed && <span>{item.title}</span>}
@@ -57,7 +57,7 @@ export function AppSidebar() {
       </nav>
 
       {/* User Profile */}
-      <div className="border-t border-sidebar-border p-3">
+      <div className="border-t border-white/20 p-3">
         <div
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2",
@@ -65,16 +65,16 @@ export function AppSidebar() {
           )}
         >
           <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-sidebar-muted text-xs text-sidebar-foreground">
+            <AvatarFallback className="bg-white/20 text-xs text-white">
               {mockUser.avatar}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-sidebar-primary-foreground">
+              <p className="truncate text-sm font-medium text-white">
                 {mockUser.name}
               </p>
-              <p className="truncate text-xs text-sidebar-foreground">
+              <p className="truncate text-xs text-white/70">
                 {mockUser.role}
               </p>
             </div>
