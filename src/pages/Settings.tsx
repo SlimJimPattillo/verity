@@ -99,6 +99,27 @@ export default function Settings() {
 
         {/* Brand Kit Tab */}
         <TabsContent value="brand" className="space-y-6">
+          {/* Logo Upload */}
+          <Card className="border-border shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-lg">Logo</CardTitle>
+              <CardDescription>
+                Upload your organization's logo for reports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-muted-foreground/30">
+                <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Drag & drop or click to upload
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  PNG, JPG up to 5MB
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Color Settings - Expanded Grid */}
           <Card className="border-border shadow-soft">
             <CardHeader>
@@ -156,27 +177,6 @@ export default function Settings() {
                     onChange={handleColorChange(setNeutralSurface)}
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Logo Upload */}
-          <Card className="border-border shadow-soft">
-            <CardHeader>
-              <CardTitle className="text-lg">Logo</CardTitle>
-              <CardDescription>
-                Upload your organization's logo for reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-muted-foreground/30">
-                <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Drag & drop or click to upload
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  PNG, JPG up to 5MB
-                </p>
               </div>
             </CardContent>
           </Card>
