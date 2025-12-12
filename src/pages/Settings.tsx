@@ -8,10 +8,10 @@ import { Upload, Palette, Building2, User, Bell } from "lucide-react";
 import { mockOrganization, mockUser } from "@/lib/mockData";
 
 export default function Settings() {
-  const [primaryColor, setPrimaryColor] = useState("#0F172A");
-  const [secondaryColor, setSecondaryColor] = useState("#059669");
-  const [highlightColor, setHighlightColor] = useState("#D97706");
-  const [neutralBg, setNeutralBg] = useState("#F8F9FA");
+  const [primaryColor, setPrimaryColor] = useState("#059669");
+  const [secondaryColor, setSecondaryColor] = useState("#FFC27B");
+  const [highlightColor, setHighlightColor] = useState("#FFC27B");
+  const [neutralBg, setNeutralBg] = useState("#F9FAFB");
   const [neutralSurface, setNeutralSurface] = useState("#FFFFFF");
   const [orgName, setOrgName] = useState(mockOrganization.name);
 

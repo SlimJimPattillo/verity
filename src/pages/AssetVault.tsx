@@ -98,16 +98,16 @@ export default function AssetVault() {
                         className={cn(
                           "flex h-10 w-10 items-center justify-center rounded-lg",
                           metric.type === "outcome"
-                            ? "bg-success/10"
-                            : "bg-primary/10"
+                            ? "bg-primary/10"
+                            : "bg-secondary/30"
                         )}
                       >
                         <Icon
                           className={cn(
                             "h-5 w-5",
                             metric.type === "outcome"
-                              ? "text-success"
-                              : "text-primary"
+                              ? "text-primary"
+                              : "text-secondary-foreground"
                           )}
                         />
                       </div>
@@ -135,8 +135,8 @@ export default function AssetVault() {
                         className={cn(
                           "text-xs font-medium uppercase",
                           metric.type === "outcome"
-                            ? "bg-success/10 text-success"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-secondary/50 text-secondary-foreground"
                         )}
                       >
                         {metric.type}

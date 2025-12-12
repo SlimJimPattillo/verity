@@ -25,8 +25,8 @@ export interface Organization {
 
 export const mockOrganization: Organization = {
   name: "Metroville Food Bank",
-  primaryColor: "#0F172A",
-  secondaryColor: "#059669",
+  primaryColor: "#059669",
+  secondaryColor: "#FFC27B",
 };
 
 export const mockMetrics: Metric[] = [

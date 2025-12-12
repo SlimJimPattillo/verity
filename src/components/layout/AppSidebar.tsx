@@ -1,10 +1,11 @@
-import { Home, FileText, Sparkles, Database, Settings, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import { Home, FileText, Sparkles, Database, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { mockUser } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { VerityLogo } from "@/components/icons/VerityLogo";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -27,9 +28,7 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-sidebar-border px-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-            <ShieldCheck className="h-5 w-5 text-secondary-foreground" />
-          </div>
+          <VerityLogo className="h-8 w-8 text-primary" />
           {!collapsed && (
             <span className="text-lg text-sidebar-primary-foreground" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
               Verity
