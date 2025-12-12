@@ -59,11 +59,11 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground lg:text-3xl">
-            {greeting}, {userName || mockUser.name.split(" ")[0]}
+          <h1 className="font-serif text-2xl font-bold text-[#1F2937] lg:text-3xl">
+            Verity: Bring your impact to light.
           </h1>
-          <p className="mt-1 text-muted-foreground">
-            Manage your metrics, generate reports, and verify your grant narratives.
+          <p className="mt-2 max-w-2xl text-[#1F2937]/80">
+            Truth hides in the well of disconnected systems, spreadsheets, and CRM data. Verity brings it to the surface, shining a light on your impact for donors, grants, and your community.
           </p>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
