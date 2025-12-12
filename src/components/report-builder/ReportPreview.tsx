@@ -1,6 +1,9 @@
 import { Metric, mockOrganization } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import { TrendingUp, Users, Hash, DollarSign, Percent } from "lucide-react";
+import { FinancialsDonutChart } from "@/components/charts/FinancialsDonutChart";
+import { MicroBarChart } from "@/components/charts/MicroBarChart";
+import { IconArray } from "@/components/charts/IconArray";
 
 interface ReportPreviewProps {
   title: string;
@@ -99,23 +102,42 @@ export function ReportPreview({
           <p className="mb-2 text-sm font-medium uppercase tracking-wide text-slate-500">
             Key Impact
           </p>
-          <p
-            className="text-5xl font-bold"
-            style={{ color: primaryColor }}
-          >
-            {heroOutcome.unit === "$" && "$"}
-            {heroOutcome.value.toLocaleString()}
-            {heroOutcome.unit === "%" && "%"}
-          </p>
+          {heroOutcome.showAsIcons ? (
+            <div className="mx-auto flex max-w-xs flex-col items-center">
+              <IconArray
+                value={heroOutcome.value}
+                unit={heroOutcome.unit}
+                primaryColor={primaryColor}
+              />
+            </div>
+          ) : (
+            <p
+              className="text-5xl font-bold"
+              style={{ color: primaryColor }}
+            >
+              {heroOutcome.unit === "$" && "$"}
+              {heroOutcome.value.toLocaleString()}
+              {heroOutcome.unit === "%" && "%"}
+            </p>
+          )}
           <p className="mt-2 text-lg font-medium text-slate-700">
             {heroOutcome.label}
           </p>
-          {heroOutcome.comparison && (
+          {heroOutcome.comparison && heroOutcome.previousValue ? (
+            <div className="mx-auto mt-4 max-w-[200px]">
+              <MicroBarChart
+                currentValue={heroOutcome.value}
+                previousValue={heroOutcome.previousValue}
+                primaryColor={primaryColor}
+              />
+              <p className="mt-1 text-xs text-slate-500">{heroOutcome.comparison}</p>
+            </div>
+          ) : heroOutcome.comparison ? (
             <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
               <TrendingUp className="h-3 w-3" />
               {heroOutcome.comparison}
             </div>
-          )}
+          ) : null}
         </div>
       )}
 
@@ -126,22 +148,48 @@ export function ReportPreview({
           return (
             <div
               key={metric.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 text-center"
+              className="rounded-lg border border-slate-200 bg-white p-4"
             >
-              <div
-                className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${primaryColor}15` }}
-              >
-                <Icon className="h-5 w-5" style={{ color: primaryColor }} />
+              <div className="flex items-start gap-3">
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: `${primaryColor}15` }}
+                >
+                  <Icon className="h-5 w-5" style={{ color: primaryColor }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  {metric.showAsIcons ? (
+                    <IconArray
+                      value={metric.value}
+                      unit={metric.unit}
+                      primaryColor={primaryColor}
+                      maxIcons={25}
+                    />
+                  ) : (
+                    <p className="text-2xl font-bold text-slate-800">
+                      {metric.unit === "$" && "$"}
+                      {metric.value.toLocaleString()}
+                      {metric.unit === "%" && "%"}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs font-medium text-slate-500">
+                    {metric.label}
+                  </p>
+                </div>
               </div>
-              <p className="text-2xl font-bold text-slate-800">
-                {metric.unit === "$" && "$"}
-                {metric.value.toLocaleString()}
-                {metric.unit === "%" && "%"}
-              </p>
-              <p className="mt-1 text-xs font-medium text-slate-500">
-                {metric.label}
-              </p>
+              {/* Micro Bar Chart for comparison */}
+              {metric.previousValue && (
+                <div className="mt-3">
+                  <MicroBarChart
+                    currentValue={metric.value}
+                    previousValue={metric.previousValue}
+                    primaryColor={primaryColor}
+                  />
+                  {metric.comparison && (
+                    <p className="mt-1 text-[10px] text-slate-500">{metric.comparison}</p>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -157,32 +205,40 @@ export function ReportPreview({
         </div>
       )}
 
-      {/* Financials */}
+      {/* Financials with Donut Chart */}
       <div className="border-t border-slate-200 px-8 py-6">
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">
           Financial Breakdown
         </h3>
-        <div className="flex gap-8">
-          <div className="flex items-center gap-2">
-            <div
-              className="h-3 w-3 rounded-full"
-              style={{ backgroundColor: primaryColor }}
-            />
-            <span className="text-sm text-slate-600">
-              Programs: {financials.program}%
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-slate-400" />
-            <span className="text-sm text-slate-600">
-              Admin: {financials.admin}%
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-slate-300" />
-            <span className="text-sm text-slate-600">
-              Fundraising: {financials.fundraising}%
-            </span>
+        <div className="flex items-center gap-8">
+          <FinancialsDonutChart
+            program={financials.program}
+            admin={financials.admin}
+            fundraising={financials.fundraising}
+            primaryColor={primaryColor}
+          />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: primaryColor }}
+              />
+              <span className="text-sm text-slate-600">
+                Programs: {financials.program}%
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-slate-400" />
+              <span className="text-sm text-slate-600">
+                Admin: {financials.admin}%
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-slate-200" />
+              <span className="text-sm text-slate-600">
+                Fundraising: {financials.fundraising}%
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Metric } from "@/lib/mockData";
 
@@ -18,7 +19,10 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState<Metric["unit"]>("#");
   const [type, setType] = useState<Metric["type"]>("output");
+  const [showComparison, setShowComparison] = useState(false);
+  const [previousValue, setPreviousValue] = useState("");
   const [comparison, setComparison] = useState("");
+  const [showAsIcons, setShowAsIcons] = useState(false);
 
   const handleSave = () => {
     if (!label || !value) return;
@@ -28,7 +32,9 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
       value: parseFloat(value),
       unit,
       type,
-      comparison: comparison || undefined,
+      comparison: showComparison ? comparison || undefined : undefined,
+      previousValue: showComparison && previousValue ? parseFloat(previousValue) : undefined,
+      showAsIcons,
     });
     
     // Reset form
@@ -36,7 +42,10 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
     setValue("");
     setUnit("#");
     setType("output");
+    setShowComparison(false);
+    setPreviousValue("");
     setComparison("");
+    setShowAsIcons(false);
     onOpenChange(false);
   };
 
@@ -120,15 +129,59 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
             </div>
           </div>
 
-          {/* Comparison (Optional) */}
-          <div className="space-y-2">
-            <Label htmlFor="comparison">Comparison (Optional)</Label>
-            <Input
-              id="comparison"
-              placeholder="e.g., vs last year, across service area"
-              value={comparison}
-              onChange={(e) => setComparison(e.target.value)}
+          {/* Show Comparison Toggle */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="showComparison"
+                checked={showComparison}
+                onCheckedChange={(checked) => setShowComparison(checked === true)}
+              />
+              <Label htmlFor="showComparison" className="text-sm font-normal cursor-pointer">
+                Show Comparison (adds micro-chart)
+              </Label>
+            </div>
+
+            {showComparison && (
+              <div className="grid grid-cols-2 gap-4 pl-6">
+                <div className="space-y-2">
+                  <Label htmlFor="previousValue">Previous Value</Label>
+                  <Input
+                    id="previousValue"
+                    type="number"
+                    placeholder="4200"
+                    value={previousValue}
+                    onChange={(e) => setPreviousValue(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="comparison">Context Label</Label>
+                  <Input
+                    id="comparison"
+                    placeholder="vs last year"
+                    value={comparison}
+                    onChange={(e) => setComparison(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Visualize as Icons */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="showAsIcons"
+              checked={showAsIcons}
+              onCheckedChange={(checked) => setShowAsIcons(checked === true)}
             />
+            <div className="grid gap-0.5">
+              <Label htmlFor="showAsIcons" className="text-sm font-normal cursor-pointer">
+                Visualize as Icons?
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Renders a grid of icons instead of just a number (max 50 icons)
+              </p>
+            </div>
           </div>
         </div>
 
