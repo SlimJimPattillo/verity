@@ -102,7 +102,7 @@ export function ReportPreview({
           </p>
           <p
             className="text-5xl font-bold"
-            style={{ color: "#059669" }}
+            style={{ color: primaryColor }}
           >
             {heroOutcome.unit === "$" && "$"}
             {heroOutcome.value.toLocaleString()}
@@ -118,10 +118,16 @@ export function ReportPreview({
                 previousValue={heroOutcome.previousValue}
                 primaryColor={primaryColor}
               />
-              <p className="mt-1 text-xs text-slate-500">{heroOutcome.comparison}</p>
+              <p className="mt-1 flex items-center justify-center gap-1 text-xs" style={{ color: primaryColor }}>
+                <TrendingUp className="h-3 w-3" />
+                {heroOutcome.comparison}
+              </p>
             </div>
           ) : heroOutcome.comparison ? (
-            <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+            <div 
+              className="mt-2 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium"
+              style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}
+            >
               <TrendingUp className="h-3 w-3" />
               {heroOutcome.comparison}
             </div>
