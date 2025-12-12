@@ -19,10 +19,12 @@ export default function Dashboard() {
   const {
     showWelcomeModal,
     selectedSector,
+    userName,
     completedSteps,
     progressPercent,
     isComplete,
     selectSector,
+    setUserName,
     dismissOnboarding,
   } = useOnboarding();
 
@@ -50,14 +52,15 @@ export default function Dashboard() {
       {/* Welcome Modal */}
       <WelcomeModal 
         open={showWelcomeModal} 
-        onSelectSector={handleSectorSelect} 
+        onSelectSector={handleSectorSelect}
+        onSetUserName={setUserName}
       />
 
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground lg:text-3xl">
-            {greeting}, {mockUser.name.split(" ")[0]}
+            {greeting}, {userName || mockUser.name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">
             Manage your metrics, generate reports, and verify your grant narratives.
