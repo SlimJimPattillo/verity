@@ -5,6 +5,8 @@ export interface Metric {
   unit: '$' | '%' | 'People' | '#';
   type: 'output' | 'outcome';
   comparison?: string;
+  previousValue?: number;
+  showAsIcons?: boolean;
 }
 
 export interface Report {
@@ -36,6 +38,7 @@ export const mockMetrics: Metric[] = [
     unit: "#",
     type: "output",
     comparison: "vs 4,200 last year",
+    previousValue: 4200,
   },
   {
     id: "2",
@@ -44,6 +47,7 @@ export const mockMetrics: Metric[] = [
     unit: "%",
     type: "outcome",
     comparison: "across service area",
+    previousValue: 8,
   },
   {
     id: "3",
@@ -58,6 +62,7 @@ export const mockMetrics: Metric[] = [
     value: 1250,
     unit: "People",
     type: "output",
+    showAsIcons: true,
   },
   {
     id: "5",
@@ -66,6 +71,7 @@ export const mockMetrics: Metric[] = [
     unit: "%",
     type: "outcome",
     comparison: "among regular recipients",
+    previousValue: 12,
   },
 ];
 
