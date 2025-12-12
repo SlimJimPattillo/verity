@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { SparklineChart } from "@/components/charts/SparklineChart";
 
 interface StatCardProps {
   title: string;
@@ -9,13 +8,11 @@ interface StatCardProps {
   icon: ReactNode;
   trend?: string;
   className?: string;
-  sparklineData?: number[];
 }
 
-export function StatCard({ title, value, icon, trend, className, sparklineData }: StatCardProps) {
+export function StatCard({ title, value, icon, trend, className }: StatCardProps) {
   return (
     <Card className={cn("relative overflow-hidden border border-border bg-card shadow-soft transition-shadow hover:shadow-medium", className)}>
-      {sparklineData && <SparklineChart data={sparklineData} />}
       <CardContent className="relative z-10 p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
