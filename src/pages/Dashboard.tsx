@@ -46,20 +46,17 @@ export default function Dashboard() {
           value={mockReports.length}
           icon={<FileText className="h-5 w-5" />}
           trend="+2 this month"
-          sparklineData={[2, 4, 3, 5, 4, 6, 8, 7, 9, 10, 12, 14]}
         />
         <StatCard
           title="Grant Answers Generated"
           value={12}
           icon={<Sparkles className="h-5 w-5" />}
           trend="+5 this week"
-          sparklineData={[1, 2, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12]}
         />
         <StatCard
           title="Assets in Vault"
           value={mockMetrics.length}
           icon={<Database className="h-5 w-5" />}
-          sparklineData={[3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 8, 8]}
         />
       </div>
 
