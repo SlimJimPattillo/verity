@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -10,16 +10,27 @@ import { Plus, FileText, Image as ImageIcon } from "lucide-react";
 import { MetricCard } from "@/components/report-builder/MetricCard";
 import { MetricBuilderModal } from "@/components/report-builder/MetricBuilderModal";
 import { ReportPreview } from "@/components/report-builder/ReportPreview";
-import { mockMetrics, Metric, mockOrganization } from "@/lib/mockData";
+import { Metric, mockOrganization } from "@/lib/mockData";
+import { sectorConfigs } from "@/lib/sectorData";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 export default function ReportBuilder() {
-  const [metrics, setMetrics] = useState<Metric[]>(mockMetrics);
+  const { selectedSector, completeStep } = useOnboarding();
+  const sectorData = selectedSector ? sectorConfigs[selectedSector] : null;
+
+  const [metrics, setMetrics] = useState<Metric[]>(() => {
+    if (sectorData) {
+      return sectorData.metrics.map((m, i) => ({ ...m, id: `sector-${i}` }));
+    }
+    return [];
+  });
+
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("2024 Annual Impact Report");
   const [dateRange, setDateRange] = useState("January - December 2024");
-  const [narrative, setNarrative] = useState(
-    "This year, Metroville Food Bank has made tremendous strides in addressing food insecurity in our community. Through the dedication of our volunteers and the generosity of our donors, we've been able to expand our reach and deepen our impact."
-  );
+  const [narrative, setNarrative] = useState(() => {
+    return sectorData?.narrative || "";
+  });
   const [financials, setFinancials] = useState({
     program: 85,
     admin: 10,
@@ -27,6 +38,21 @@ export default function ReportBuilder() {
   });
   const [viewMode, setViewMode] = useState<"pdf" | "social">("pdf");
   const [primaryColor, setPrimaryColor] = useState(mockOrganization.primaryColor);
+
+  // Update data when sector changes
+  useEffect(() => {
+    if (sectorData) {
+      setMetrics(sectorData.metrics.map((m, i) => ({ ...m, id: `sector-${i}` })));
+      setNarrative(sectorData.narrative);
+    }
+  }, [selectedSector]);
+
+  // Mark report as created when user makes changes
+  useEffect(() => {
+    if (metrics.length > 0 || narrative) {
+      completeStep("reportCreated");
+    }
+  }, [metrics, narrative, completeStep]);
 
   const handleAddMetric = (metric: Omit<Metric, "id">) => {
     const newMetric: Metric = {
@@ -48,6 +74,11 @@ export default function ReportBuilder() {
           <h1 className="text-xl font-semibold text-foreground">Report Builder</h1>
           <p className="text-sm text-muted-foreground">
             Create your impact report
+            {sectorData && (
+              <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                {sectorData.label}
+              </span>
+            )}
           </p>
         </div>
 
