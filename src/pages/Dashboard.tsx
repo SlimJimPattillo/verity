@@ -3,13 +3,28 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentActivityTable } from "@/components/dashboard/RecentActivityTable";
 import { GetStartedCard } from "@/components/dashboard/GetStartedCard";
-import { mockUser, mockReports, mockMetrics } from "@/lib/mockData";
+import { GettingStartedWidget } from "@/components/dashboard/GettingStartedWidget";
+import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
+import { mockUser, mockReports } from "@/lib/mockData";
+import { sectorConfigs, Sector } from "@/lib/sectorData";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const greeting = getGreeting();
-  const showEmptyState = false; // Toggle to see empty state
+  const showEmptyState = false;
+  
+  const {
+    showWelcomeModal,
+    selectedSector,
+    completedSteps,
+    progressPercent,
+    isComplete,
+    selectSector,
+    dismissOnboarding,
+  } = useOnboarding();
 
   function getGreeting() {
     const hour = new Date().getHours();
@@ -18,10 +33,28 @@ export default function Dashboard() {
     return "Good evening";
   }
 
+  const handleSectorSelect = (sector: Sector) => {
+    selectSector(sector);
+    const config = sectorConfigs[sector];
+    toast.success(`We've pre-loaded a ${config.label} template for you!`, {
+      description: "Your metrics and narrative have been customized.",
+    });
+  };
+
+  const metricsCount = selectedSector 
+    ? sectorConfigs[selectedSector].metrics.length 
+    : 5;
+
   return (
     <div className="animate-fade-in p-6 lg:p-8">
+      {/* Welcome Modal */}
+      <WelcomeModal 
+        open={showWelcomeModal} 
+        onSelectSector={handleSectorSelect} 
+      />
+
       {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground lg:text-3xl">
             {greeting}, {mockUser.name.split(" ")[0]}
@@ -30,13 +63,18 @@ export default function Dashboard() {
             Here's what's happening with your impact reporting
           </p>
         </div>
-        <Button 
-          onClick={() => navigate("/report-builder")}
-          className="gap-2 shadow-soft"
-        >
-          <Plus className="h-4 w-4" />
-          Create New Report
-        </Button>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          {/* Getting Started Widget - only show if not dismissed */}
+          {!isComplete && completedSteps.sectorSelected && (
+            <div className="w-full sm:w-72">
+              <GettingStartedWidget
+                progressPercent={progressPercent}
+                completedSteps={completedSteps}
+                onDismiss={dismissOnboarding}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick Stats */}
@@ -55,9 +93,20 @@ export default function Dashboard() {
         />
         <StatCard
           title="Assets in Vault"
-          value={mockMetrics.length}
+          value={metricsCount}
           icon={<Database className="h-5 w-5" />}
         />
+      </div>
+
+      {/* Create Report Button */}
+      <div className="mb-8">
+        <Button 
+          onClick={() => navigate("/report-builder")}
+          className="gap-2 shadow-soft"
+        >
+          <Plus className="h-4 w-4" />
+          Create New Report
+        </Button>
       </div>
 
       {/* Main Content */}
