@@ -60,7 +60,7 @@ export default function Dashboard() {
             {greeting}, {mockUser.name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Here's what's happening with your impact reporting
+            Manage your metrics, generate reports, and verify your grant narratives.
           </p>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
