@@ -1,9 +1,7 @@
 import { Metric, mockOrganization } from "@/lib/mockData";
-import { cn } from "@/lib/utils";
 import { TrendingUp, Users, Hash, DollarSign, Percent } from "lucide-react";
 import { FinancialsDonutChart } from "@/components/charts/FinancialsDonutChart";
 import { MicroBarChart } from "@/components/charts/MicroBarChart";
-import { IconArray } from "@/components/charts/IconArray";
 
 interface ReportPreviewProps {
   title: string;
@@ -102,24 +100,14 @@ export function ReportPreview({
           <p className="mb-2 text-sm font-medium uppercase tracking-wide text-slate-500">
             Key Impact
           </p>
-          {heroOutcome.showAsIcons ? (
-            <div className="mx-auto flex max-w-xs flex-col items-center">
-              <IconArray
-                value={heroOutcome.value}
-                unit={heroOutcome.unit}
-                primaryColor={primaryColor}
-              />
-            </div>
-          ) : (
-            <p
-              className="text-5xl font-bold"
-              style={{ color: primaryColor }}
-            >
-              {heroOutcome.unit === "$" && "$"}
-              {heroOutcome.value.toLocaleString()}
-              {heroOutcome.unit === "%" && "%"}
-            </p>
-          )}
+          <p
+            className="text-5xl font-bold"
+            style={{ color: primaryColor }}
+          >
+            {heroOutcome.unit === "$" && "$"}
+            {heroOutcome.value.toLocaleString()}
+            {heroOutcome.unit === "%" && "%"}
+          </p>
           <p className="mt-2 text-lg font-medium text-slate-700">
             {heroOutcome.label}
           </p>
@@ -158,20 +146,11 @@ export function ReportPreview({
                   <Icon className="h-5 w-5" style={{ color: primaryColor }} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  {metric.showAsIcons ? (
-                    <IconArray
-                      value={metric.value}
-                      unit={metric.unit}
-                      primaryColor={primaryColor}
-                      maxIcons={25}
-                    />
-                  ) : (
-                    <p className="text-2xl font-bold text-slate-800">
-                      {metric.unit === "$" && "$"}
-                      {metric.value.toLocaleString()}
-                      {metric.unit === "%" && "%"}
-                    </p>
-                  )}
+                  <p className="text-2xl font-bold text-slate-800">
+                    {metric.unit === "$" && "$"}
+                    {metric.value.toLocaleString()}
+                    {metric.unit === "%" && "%"}
+                  </p>
                   <p className="mt-1 text-xs font-medium text-slate-500">
                     {metric.label}
                   </p>

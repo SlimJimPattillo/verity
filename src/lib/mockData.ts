@@ -6,7 +6,6 @@ export interface Metric {
   type: 'output' | 'outcome';
   comparison?: string;
   previousValue?: number;
-  showAsIcons?: boolean;
 }
 
 export interface Report {
@@ -62,7 +61,6 @@ export const mockMetrics: Metric[] = [
     value: 1250,
     unit: "People",
     type: "output",
-    showAsIcons: true,
   },
   {
     id: "5",

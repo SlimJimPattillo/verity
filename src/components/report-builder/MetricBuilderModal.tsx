@@ -22,7 +22,6 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
   const [showComparison, setShowComparison] = useState(false);
   const [previousValue, setPreviousValue] = useState("");
   const [comparison, setComparison] = useState("");
-  const [showAsIcons, setShowAsIcons] = useState(false);
 
   const handleSave = () => {
     if (!label || !value) return;
@@ -34,7 +33,6 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
       type,
       comparison: showComparison ? comparison || undefined : undefined,
       previousValue: showComparison && previousValue ? parseFloat(previousValue) : undefined,
-      showAsIcons,
     });
     
     // Reset form
@@ -45,7 +43,6 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
     setShowComparison(false);
     setPreviousValue("");
     setComparison("");
-    setShowAsIcons(false);
     onOpenChange(false);
   };
 
@@ -167,22 +164,6 @@ export function MetricBuilderModal({ open, onOpenChange, onSave }: MetricBuilder
             )}
           </div>
 
-          {/* Visualize as Icons */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="showAsIcons"
-              checked={showAsIcons}
-              onCheckedChange={(checked) => setShowAsIcons(checked === true)}
-            />
-            <div className="grid gap-0.5">
-              <Label htmlFor="showAsIcons" className="text-sm font-normal cursor-pointer">
-                Visualize as Icons?
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Renders a grid of icons instead of just a number (max 50 icons)
-              </p>
-            </div>
-          </div>
         </div>
 
         <DialogFooter>
