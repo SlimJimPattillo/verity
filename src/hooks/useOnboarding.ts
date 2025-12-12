@@ -4,6 +4,7 @@ import { Sector } from "@/lib/sectorData";
 interface OnboardingState {
   isComplete: boolean;
   selectedSector: Sector | null;
+  userName: string | null;
   completedSteps: {
     sectorSelected: boolean;
     logoUploaded: boolean;
@@ -12,11 +13,12 @@ interface OnboardingState {
   };
 }
 
-const STORAGE_KEY = "impactos-onboarding";
+const STORAGE_KEY = "verity-onboarding";
 
 const defaultState: OnboardingState = {
   isComplete: false,
   selectedSector: null,
+  userName: null,
   completedSteps: {
     sectorSelected: false,
     logoUploaded: false,
@@ -34,6 +36,13 @@ export function useOnboarding() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+
+  const setUserName = useCallback((name: string) => {
+    setState((prev) => ({
+      ...prev,
+      userName: name,
+    }));
+  }, []);
 
   const selectSector = useCallback((sector: Sector) => {
     setState((prev) => ({
@@ -77,6 +86,7 @@ export function useOnboarding() {
     ...state,
     showWelcomeModal,
     progressPercent,
+    setUserName,
     selectSector,
     completeStep,
     dismissOnboarding,

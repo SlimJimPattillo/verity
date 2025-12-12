@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Utensils, GraduationCap, Heart, PawPrint, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Utensils, GraduationCap, Heart, PawPrint, Globe, ArrowRight } from "lucide-react";
 import { Sector } from "@/lib/sectorData";
 import { cn } from "@/lib/utils";
 
 interface WelcomeModalProps {
   open: boolean;
   onSelectSector: (sector: Sector) => void;
+  onSetUserName: (name: string) => void;
 }
 
 const sectors: { id: Sector; label: string; icon: React.ElementType; description: string }[] = [
@@ -16,7 +20,23 @@ const sectors: { id: Sector; label: string; icon: React.ElementType; description
   { id: "other", label: "Other", icon: Globe, description: "Community, environment, arts" },
 ];
 
-export function WelcomeModal({ open, onSelectSector }: WelcomeModalProps) {
+export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeModalProps) {
+  const [step, setStep] = useState<"name" | "sector">("name");
+  const [name, setName] = useState("");
+
+  const handleNameSubmit = () => {
+    if (name.trim()) {
+      onSetUserName(name.trim());
+      setStep("sector");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && name.trim()) {
+      handleNameSubmit();
+    }
+  };
+
   return (
     <Dialog open={open}>
       <DialogContent 
@@ -30,37 +50,71 @@ export function WelcomeModal({ open, onSelectSector }: WelcomeModalProps) {
             Welcome to Verity
           </h1>
           <p className="mt-2 text-primary-foreground/80">
-            Let's validate your impact. We'll tailor your metrics and templates based on your mission.
+            {step === "name" 
+              ? "Let's start by getting to know you."
+              : "We'll tailor your metrics and templates based on your mission."
+            }
           </p>
         </div>
 
-        {/* Sector Grid */}
-        <div className="p-8">
-          <p className="mb-6 text-center text-sm font-medium text-muted-foreground">
-            What type of organization are you?
-          </p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {sectors.map((sector) => (
-              <button
-                key={sector.id}
-                onClick={() => onSelectSector(sector.id)}
-                className={cn(
-                  "group flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-card p-6 transition-all",
-                  "hover:border-primary hover:bg-primary/5 hover:shadow-md",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                )}
+        {step === "name" ? (
+          /* Name Input Step */
+          <div className="p-8">
+            <div className="mx-auto max-w-sm space-y-6">
+              <div className="text-center">
+                <p className="text-sm font-medium text-muted-foreground">
+                  What's your name?
+                </p>
+              </div>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Enter your name"
+                className="h-12 text-center text-lg"
+                autoFocus
+                maxLength={50}
+              />
+              <Button 
+                onClick={handleNameSubmit}
+                disabled={!name.trim()}
+                className="w-full gap-2"
+                size="lg"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
-                  <sector.icon className="h-7 w-7 text-muted-foreground transition-colors group-hover:text-primary" />
-                </div>
-                <div className="text-center">
-                  <p className="font-semibold text-foreground">{sector.label}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{sector.description}</p>
-                </div>
-              </button>
-            ))}
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Sector Grid Step */
+          <div className="p-8">
+            <p className="mb-6 text-center text-sm font-medium text-muted-foreground">
+              What type of organization are you?
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {sectors.map((sector) => (
+                <button
+                  key={sector.id}
+                  onClick={() => onSelectSector(sector.id)}
+                  className={cn(
+                    "group flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-card p-6 transition-all",
+                    "hover:border-primary hover:bg-primary/5 hover:shadow-md",
+                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  )}
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
+                    <sector.icon className="h-7 w-7 text-muted-foreground transition-colors group-hover:text-primary" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold text-foreground">{sector.label}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{sector.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
