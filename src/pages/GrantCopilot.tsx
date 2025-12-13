@@ -1,37 +1,126 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Copy, Save, Check, Database, TrendingUp } from "lucide-react";
-import { mockMetrics } from "@/lib/mockData";
+import { Sparkles, Copy, Save, Check, Database, TrendingUp, Loader2 } from "lucide-react";
+import { Metric } from "@/lib/mockData";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { generateGrantAnswer } from "@/lib/api";
+import { toast as sonnerToast } from "sonner";
 
 export default function GrantCopilot() {
+  const { organizationId, user } = useAuth();
   const [question, setQuestion] = useState("");
   const [tone, setTone] = useState("professional");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAnswer, setGeneratedAnswer] = useState("");
+  const [currentAnswerId, setCurrentAnswerId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [orgName, setOrgName] = useState("Your Organization");
   const { toast } = useToast();
+
+  const loadMetrics = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('metrics')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedMetrics: Metric[] = (data || []).map((m) => ({
+        id: m.id,
+        label: m.label,
+        value: Number(m.value),
+        unit: m.unit as Metric['unit'],
+        type: m.type as Metric['type'],
+        comparison: m.comparison || undefined,
+        previousValue: m.previous_value ? Number(m.previous_value) : undefined,
+      }));
+
+      setMetrics(mappedMetrics);
+    } catch (error) {
+      console.error('Error loading metrics:', error);
+    } finally {
+      setLoadingMetrics(false);
+    }
+  }, [organizationId]);
+
+  const loadOrgName = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', organizationId)
+        .single();
+
+      if (error) throw error;
+      if (data) setOrgName(data.name);
+    } catch (error) {
+      console.error('Error loading org name:', error);
+    }
+  }, [organizationId]);
+
+  // Load metrics and org name
+  useEffect(() => {
+    if (organizationId) {
+      loadMetrics();
+      loadOrgName();
+    }
+  }, [organizationId, loadMetrics, loadOrgName]);
 
   const handleGenerate = async () => {
     if (!question.trim()) return;
-    
+    if (metrics.length === 0) {
+      sonnerToast.error("Please add some metrics to your Asset Vault first");
+      return;
+    }
+
     setIsGenerating(true);
-    
-    // Simulate AI generation
-    setTimeout(() => {
-      const answer = `Based on our program data, Metroville Food Bank has demonstrated significant impact in addressing food insecurity within our community. In the past year alone, we have served over 5,000 meals to families in need, representing a 19% increase from the previous year.
+    setGeneratedAnswer("");
+    setCurrentAnswerId(null);
 
-Our outcomes-focused approach has yielded measurable results: we've achieved a 15% reduction in reported food insecurity among our regular recipients, with 88% of our resources directed toward program delivery. This efficiency ensures that donor contributions are maximized for community benefit.
+    try {
+      const answer = await generateGrantAnswer({
+        question: question.trim(),
+        metrics,
+        organizationName: orgName,
+        tone: tone as 'professional' | 'emotional' | 'urgent',
+      });
 
-Furthermore, our family-centered model has allowed us to assist 1,250 households, providing not just immediate nutrition support but also connecting families with additional resources for long-term food security. The 23% improvement in food security scores among regular recipients demonstrates the lasting impact of our comprehensive approach.`;
-      
       setGeneratedAnswer(answer);
+
+      // Save to database
+      const { data, error } = await supabase
+        .from('grant_answers')
+        .insert({
+          organization_id: organizationId,
+          question: question.trim(),
+          answer,
+          tone,
+          metrics_used: metrics.map(m => m.id),
+          created_by: user?.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCurrentAnswerId(data.id);
+
+    } catch (error) {
+      console.error('Error generating answer:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate answer';
+      sonnerToast.error(errorMessage);
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
   const handleCopy = async () => {
@@ -44,11 +133,44 @@ Furthermore, our family-centered model has allowed us to assist 1,250 households
     });
   };
 
-  const handleSaveToVault = () => {
-    toast({
-      title: "Saved to Asset Vault",
-      description: "This answer has been saved for future use.",
-    });
+  const handleSaveToVault = async () => {
+    if (!currentAnswerId || !generatedAnswer) return;
+
+    try {
+      // Create a narrative from the grant answer
+      const { data: narrativeData, error: narrativeError } = await supabase
+        .from('narratives')
+        .insert({
+          organization_id: organizationId,
+          title: question.substring(0, 100), // Truncate long questions
+          content: generatedAnswer,
+          tags: ['grant-answer', tone],
+          source: 'ai_generated',
+          created_by: user?.id,
+        })
+        .select()
+        .single();
+
+      if (narrativeError) throw narrativeError;
+
+      // Update grant_answer to link to narrative
+      const { error: updateError } = await supabase
+        .from('grant_answers')
+        .update({
+          saved_to_narratives: true,
+          narrative_id: narrativeData.id,
+        })
+        .eq('id', currentAnswerId);
+
+      if (updateError) throw updateError;
+
+      sonnerToast.success("Saved to Asset Vault", {
+        description: "This answer is now available in your narratives library.",
+      });
+    } catch (error) {
+      console.error('Error saving to vault:', error);
+      sonnerToast.error('Failed to save to vault');
+    }
   };
 
   return (

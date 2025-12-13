@@ -1,20 +1,146 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Palette, Building2, User, Bell } from "lucide-react";
-import { mockOrganization, mockUser } from "@/lib/mockData";
+import { Upload, Palette, Building2, User, Bell, Loader2 } from "lucide-react";
 import verityLogoImg from "@/assets/verity-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export default function Settings() {
+  const { organizationId, user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Organization settings
   const [primaryColor, setPrimaryColor] = useState("#059669");
   const [secondaryColor, setSecondaryColor] = useState("#FFC27B");
   const [highlightColor, setHighlightColor] = useState("#FFC27B");
   const [neutralBg, setNeutralBg] = useState("#F9FAFB");
   const [neutralSurface, setNeutralSurface] = useState("#FFFFFF");
-  const [orgName, setOrgName] = useState(mockOrganization.name);
+  const [orgName, setOrgName] = useState("");
+  const [website, setWebsite] = useState("");
+  const [ein, setEin] = useState("");
+
+  // User profile settings
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("");
+
+  const loadOrganizationSettings = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', organizationId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setPrimaryColor(data.primary_color);
+        setSecondaryColor(data.secondary_color);
+        setNeutralBg(data.neutral_color);
+        setOrgName(data.name);
+        setWebsite(data.website || '');
+        setEin(data.ein || '');
+      }
+    } catch (error) {
+      console.error('Error loading organization settings:', error);
+      toast.error('Failed to load organization settings');
+    } finally {
+      setLoading(false);
+    }
+  }, [organizationId]);
+
+  const loadUserProfile = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setFullName(data.full_name || '');
+        setRole(data.role || '');
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  }, [user?.id]);
+
+  // Load organization settings
+  useEffect(() => {
+    if (organizationId) {
+      loadOrganizationSettings();
+      loadUserProfile();
+    }
+  }, [organizationId, loadOrganizationSettings, loadUserProfile]);
+
+  const saveOrganizationSettings = async () => {
+    if (!organizationId) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          name: orgName,
+          website: website,
+          ein: ein,
+          primary_color: primaryColor,
+          secondary_color: secondaryColor,
+          neutral_color: neutralBg,
+        })
+        .eq('id', organizationId);
+
+      if (error) throw error;
+
+      toast.success('Organization settings saved successfully');
+    } catch (error) {
+      console.error('Error saving organization settings:', error);
+      toast.error('Failed to save organization settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveUserProfile = async () => {
+    if (!user?.id) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          full_name: fullName,
+          role: role,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Profile settings saved successfully');
+    } catch (error) {
+      console.error('Error saving user profile:', error);
+      toast.error('Failed to save profile settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   // Apply colors to CSS variables for live preview
   const applyColors = () => {
@@ -251,12 +377,21 @@ export default function Settings() {
           </Card>
 
           <div className="flex justify-end">
-            <Button>Save Changes</Button>
+            <Button onClick={saveOrganizationSettings} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
           </div>
         </TabsContent>
 
         {/* Organization Tab */}
-        <TabsContent value="organization">
+        <TabsContent value="organization" className="space-y-6">
           <Card className="border-border shadow-soft">
             <CardHeader>
               <CardTitle className="text-lg">Organization Details</CardTitle>
@@ -277,19 +412,38 @@ export default function Settings() {
                 <Label htmlFor="website">Website</Label>
                 <Input
                   id="website"
-                  defaultValue="www.metrovillefoodbank.org"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="www.yourorganization.org"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ein">EIN</Label>
-                <Input id="ein" defaultValue="12-3456789" />
+                <Input
+                  id="ein"
+                  value={ein}
+                  onChange={(e) => setEin(e.target.value)}
+                  placeholder="12-3456789"
+                />
               </div>
             </CardContent>
           </Card>
+          <div className="flex justify-end">
+            <Button onClick={saveOrganizationSettings} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </div>
         </TabsContent>
 
         {/* Account Tab */}
-        <TabsContent value="account">
+        <TabsContent value="account" className="space-y-6">
           <Card className="border-border shadow-soft">
             <CardHeader>
               <CardTitle className="text-lg">Account Settings</CardTitle>
@@ -300,18 +454,46 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" defaultValue={mockUser.name} />
+                <Input
+                  id="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Your full name"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue={mockUser.email} />
+                <Input
+                  id="email"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                />
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Input id="role" defaultValue={mockUser.role} disabled />
+                <Input
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  placeholder="e.g., Executive Director"
+                />
               </div>
             </CardContent>
           </Card>
+          <div className="flex justify-end">
+            <Button onClick={saveUserProfile} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </div>
         </TabsContent>
 
         {/* Notifications Tab */}

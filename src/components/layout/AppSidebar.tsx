@@ -1,10 +1,19 @@
-import { Home, FileText, Sparkles, Database, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, FileText, Sparkles, Database, Settings, ChevronLeft, ChevronRight, LogOut, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { VerityLogo } from "@/components/icons/VerityLogo";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -19,6 +28,8 @@ const STORAGE_KEY = "verity-onboarding";
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -94,28 +105,49 @@ export function AppSidebar() {
 
       {/* User Profile */}
       <div className="border-t border-sidebar-border p-3">
-        <div
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2",
-            collapsed && "justify-center px-2"
-          )}
-        >
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-sidebar-accent text-xs text-sidebar-accent-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-sidebar-primary-foreground">
-                {displayName}
-              </p>
-              <p className="truncate text-xs text-sidebar-foreground">
-                Administrator
-              </p>
-            </div>
-          )}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent",
+                collapsed && "justify-center px-2"
+              )}
+            >
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarFallback className="bg-sidebar-accent text-xs text-sidebar-accent-foreground">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              {!collapsed && (
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="truncate text-sm font-medium text-sidebar-primary-foreground">
+                    {displayName}
+                  </p>
+                  <p className="truncate text-xs text-sidebar-foreground">
+                    {user?.email || 'Administrator'}
+                  </p>
+                </div>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate("/settings")} className="gap-2">
+              <User className="h-4 w-4" />
+              <span>Profile Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={async () => {
+                await signOut();
+                navigate("/login");
+              }}
+              className="gap-2 text-destructive focus:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Collapse Toggle */}

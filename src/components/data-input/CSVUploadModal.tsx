@@ -5,6 +5,8 @@ import { Metric } from "@/lib/mockData";
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, X, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
 
 interface CSVUploadModalProps {
   open: boolean;
@@ -35,39 +37,89 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
   const [fileName, setFileName] = useState("");
   const [step, setStep] = useState<"upload" | "preview">("upload");
 
+  const parseXLSX = (arrayBuffer: ArrayBuffer): ParsedRow[] => {
+    try {
+      // Parse the Excel file
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+      // Get the first worksheet
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+
+      // Convert to JSON with header row
+      const data = XLSX.utils.sheet_to_json(worksheet, {
+        raw: false, // Convert numbers to strings for consistency
+        defval: '', // Default value for empty cells
+      }) as Record<string, string>[];
+
+      if (data.length === 0) {
+        toast.error("Excel file is empty");
+        return [];
+      }
+
+      // Normalize headers to lowercase
+      const normalizedData = data.map((row) => {
+        const normalizedRow: Record<string, string> = {};
+        Object.keys(row).forEach((key) => {
+          normalizedRow[key.toLowerCase().trim()] = row[key];
+        });
+        return normalizedRow;
+      });
+
+      return parseDataRows(normalizedData);
+    } catch (error) {
+      console.error("XLSX parsing error:", error);
+      toast.error("Error parsing Excel file");
+      return [];
+    }
+  };
+
   const parseCSV = (text: string): ParsedRow[] => {
-    const lines = text.trim().split("\n");
-    if (lines.length < 2) return [];
+    // Use PapaParse for robust CSV parsing
+    const result = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.toLowerCase().trim(),
+    });
 
-    const headers = lines[0].toLowerCase().split(",").map((h) => h.trim());
-    const labelIdx = headers.indexOf("label");
-    const valueIdx = headers.indexOf("value");
-    const unitIdx = headers.indexOf("unit");
-    const typeIdx = headers.indexOf("type");
-    const comparisonIdx = headers.indexOf("comparison");
-    const previousValueIdx = headers.indexOf("previousvalue");
-
-    if (labelIdx === -1 || valueIdx === -1) {
-      toast.error("CSV must have 'label' and 'value' columns");
+    if (result.errors.length > 0) {
+      console.error("CSV parsing errors:", result.errors);
+      toast.error("Error parsing CSV file");
       return [];
     }
 
-    return lines.slice(1).map((line) => {
-      const values = line.split(",").map((v) => v.trim());
-      const label = values[labelIdx] || "";
-      const valueStr = values[valueIdx] || "";
-      const value = parseFloat(valueStr);
-      const unitRaw = values[unitIdx]?.toLowerCase() || "#";
-      const typeRaw = values[typeIdx]?.toLowerCase() || "output";
-      const comparison = values[comparisonIdx] || undefined;
-      const previousValueStr = values[previousValueIdx];
-      const previousValue = previousValueStr ? parseFloat(previousValueStr) : undefined;
+    const data = result.data as Record<string, string>[];
+    if (data.length === 0) {
+      toast.error("CSV file is empty");
+      return [];
+    }
+
+    return parseDataRows(data);
+  };
+
+  const parseDataRows = (data: Record<string, string>[]): ParsedRow[] => {
+    // Check for required columns
+    const firstRow = data[0];
+    if (!('label' in firstRow) || !('value' in firstRow)) {
+      toast.error("File must have 'label' and 'value' columns");
+      return [];
+    }
+
+    return data.map((row) => {
+      const label = row.label?.trim() || "";
+      const valueStr = row.value?.toString().trim() || "";
+      const value = parseFloat(valueStr.replace(/[,$]/g, '')); // Remove commas and $ signs
+      const unitRaw = row.unit?.toLowerCase().trim() || "#";
+      const typeRaw = row.type?.toLowerCase().trim() || "output";
+      const comparison = row.comparison?.trim() || undefined;
+      const previousValueStr = row.previousvalue?.toString().trim();
+      const previousValue = previousValueStr ? parseFloat(previousValueStr.replace(/[,$]/g, '')) : undefined;
 
       // Validate unit
       let unit: Metric["unit"] = "#";
       if (unitRaw === "$" || unitRaw === "dollar" || unitRaw === "currency") unit = "$";
-      else if (unitRaw === "%" || unitRaw === "percent") unit = "%";
-      else if (unitRaw === "people" || unitRaw === "person") unit = "People";
+      else if (unitRaw === "%" || unitRaw === "percent" || unitRaw === "percentage") unit = "%";
+      else if (unitRaw === "people" || unitRaw === "person" || unitRaw === "persons") unit = "People";
       else unit = "#";
 
       // Validate type
@@ -99,23 +151,41 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
   };
 
   const handleFile = useCallback((file: File) => {
-    if (!file.name.endsWith(".csv")) {
-      toast.error("Please upload a CSV file");
+    const isCSV = file.name.endsWith(".csv");
+    const isXLSX = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
+
+    if (!isCSV && !isXLSX) {
+      toast.error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)");
       return;
     }
 
     setFileName(file.name);
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const parsed = parseCSV(text);
-      if (parsed.length > 0) {
-        setParsedData(parsed);
-        setStep("preview");
-      }
-    };
-    reader.readAsText(file);
+
+    if (isXLSX) {
+      // Read Excel file as ArrayBuffer
+      reader.onload = (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        const parsed = parseXLSX(arrayBuffer);
+        if (parsed.length > 0) {
+          setParsedData(parsed);
+          setStep("preview");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Read CSV file as text
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const parsed = parseCSV(text);
+        if (parsed.length > 0) {
+          setParsedData(parsed);
+          setStep("preview");
+        }
+      };
+      reader.readAsText(file);
+    }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -188,7 +258,7 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
             Import from Spreadsheet
           </DialogTitle>
           <DialogDescription>
-            Upload a CSV file to import multiple metrics at once
+            Upload a CSV or Excel file to import multiple metrics at once
           </DialogDescription>
         </DialogHeader>
 
@@ -208,7 +278,7 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
             >
               <input
                 type="file"
-                accept=".csv"
+                accept=".csv,.xlsx,.xls"
                 onChange={handleInputChange}
                 className="absolute inset-0 cursor-pointer opacity-0"
               />
@@ -219,10 +289,10 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
                 <Upload className={cn("h-7 w-7", isDragging ? "text-primary" : "text-muted-foreground")} />
               </div>
               <p className="text-sm font-medium text-foreground">
-                {isDragging ? "Drop your file here" : "Drag & drop your CSV file"}
+                {isDragging ? "Drop your file here" : "Drag & drop your CSV or Excel file"}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                or click to browse
+                Supports .csv, .xlsx, .xls • Click to browse
               </p>
             </div>
 
