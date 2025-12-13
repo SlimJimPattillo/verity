@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, FileText, Image as ImageIcon, GripVertical } from "lucide-react";
+import { Plus } from "lucide-react";
 import { SortableMetricCard } from "@/components/report-builder/SortableMetricCard";
 import { MetricBuilderModal } from "@/components/report-builder/MetricBuilderModal";
-import { ReportPreview } from "@/components/report-builder/ReportPreview";
+import { InteractiveReportPreview } from "@/components/report-builder/InteractiveReportPreview";
+import { InspectorPanel } from "@/components/report-builder/InspectorPanel";
 import { Metric, mockOrganization } from "@/lib/mockData";
 import { sectorConfigs } from "@/lib/sectorData";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { Button } from "@/components/ui/button";
 import {
   DndContext,
   closestCenter,
@@ -27,75 +23,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { cn } from "@/lib/utils";
-
-// Section configuration
-type SectionId = "header" | "metrics" | "narrative" | "financials";
-
-interface Section {
-  id: SectionId;
-  label: string;
-  icon?: React.ReactNode;
-}
-
-const initialSections: Section[] = [
-  { id: "header", label: "Header Info", icon: <FileText className="h-4 w-4 text-muted-foreground" /> },
-  { id: "metrics", label: "Metrics (Logic Model)" },
-  { id: "narrative", label: "Narrative" },
-  { id: "financials", label: "Financials" },
-];
-
-// Sortable Section Accordion Item
-function SortableSectionAccordion({ 
-  section, 
-  children 
-}: { 
-  section: Section; 
-  children: React.ReactNode;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: section.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(isDragging && "opacity-50 z-50")}
-    >
-      <AccordionItem value={section.id} className="rounded-lg border border-border bg-card px-4">
-        <AccordionTrigger className="hover:no-underline">
-          <div className="flex items-center gap-2">
-            <div
-              {...attributes}
-              {...listeners}
-              className="cursor-grab touch-none p-1 -ml-1 hover:bg-muted rounded"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-            </div>
-            {section.icon}
-            <span className="font-medium">{section.label}</span>
-          </div>
-        </AccordionTrigger>
-        {children}
-      </AccordionItem>
-    </div>
-  );
-}
 
 export default function ReportBuilder() {
   const { selectedSector, completeStep } = useOnboarding();
@@ -108,7 +36,6 @@ export default function ReportBuilder() {
     return [];
   });
 
-  const [sections, setSections] = useState<Section[]>(initialSections);
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("2024 Annual Impact Report");
   const [dateRange, setDateRange] = useState("January - December 2024");
@@ -122,6 +49,12 @@ export default function ReportBuilder() {
   });
   const [viewMode, setViewMode] = useState<"pdf" | "social">("pdf");
   const [primaryColor, setPrimaryColor] = useState(mockOrganization.primaryColor);
+  const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
+
+  // Get selected metric
+  const selectedMetric = selectedMetricId 
+    ? metrics.find((m) => m.id === selectedMetricId) || null 
+    : null;
 
   // DnD sensors
   const sensors = useSensors(
@@ -156,6 +89,19 @@ export default function ReportBuilder() {
 
   const handleDeleteMetric = (id: string) => {
     setMetrics(metrics.filter((m) => m.id !== id));
+    if (selectedMetricId === id) {
+      setSelectedMetricId(null);
+    }
+  };
+
+  const handleMetricUpdate = (id: string, updates: Partial<Metric>) => {
+    setMetrics(metrics.map((m) => (m.id === id ? { ...m, ...updates } : m)));
+  };
+
+  const handleSettingsUpdate = (updates: Partial<{ title: string; dateRange: string; primaryColor: string }>) => {
+    if (updates.title !== undefined) setTitle(updates.title);
+    if (updates.dateRange !== undefined) setDateRange(updates.dateRange);
+    if (updates.primaryColor !== undefined) setPrimaryColor(updates.primaryColor);
   };
 
   const handleMetricDragEnd = (event: DragEndEvent) => {
@@ -170,45 +116,36 @@ export default function ReportBuilder() {
     }
   };
 
-  const handleSectionDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  return (
+    <div className="flex h-screen animate-fade-in">
+      {/* Left Column - Inspector Panel */}
+      <div className="flex w-80 flex-col border-r border-border bg-card">
+        <div className="border-b border-border p-4">
+          <h1 className="text-lg font-semibold text-foreground">Inspector</h1>
+          <p className="text-xs text-muted-foreground">
+            {selectedMetric ? "Editing metric" : "Report settings"}
+          </p>
+        </div>
 
-    if (over && active.id !== over.id) {
-      setSections((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
+        <div className="flex-1 overflow-auto p-4">
+          <InspectorPanel
+            selectedMetric={selectedMetric}
+            reportSettings={{ title, dateRange, primaryColor }}
+            onMetricUpdate={handleMetricUpdate}
+            onMetricDelete={handleDeleteMetric}
+            onSettingsUpdate={handleSettingsUpdate}
+            onDeselect={() => setSelectedMetricId(null)}
+          />
+        </div>
 
-  // Render section content based on section id
-  const renderSectionContent = (sectionId: SectionId) => {
-    switch (sectionId) {
-      case "header":
-        return (
-          <AccordionContent className="space-y-4 pb-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Report Title</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dateRange">Date Range</Label>
-              <Input
-                id="dateRange"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-              />
-            </div>
-          </AccordionContent>
-        );
-      case "metrics":
-        return (
-          <AccordionContent className="space-y-3 pb-4">
+        {/* Metrics List */}
+        <div className="border-t border-border p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Metrics ({metrics.length})
+            </span>
+          </div>
+          <div className="max-h-48 space-y-2 overflow-auto">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -218,168 +155,34 @@ export default function ReportBuilder() {
                 items={metrics.map((m) => m.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {metrics.map((metric) => (
-                  <SortableMetricCard
-                    key={metric.id}
-                    metric={metric}
-                    onDelete={handleDeleteMetric}
-                  />
-                ))}
+                {metrics.length > 0 ? (
+                  metrics.map((metric) => (
+                    <SortableMetricCard
+                      key={metric.id}
+                      metric={metric}
+                      onDelete={handleDeleteMetric}
+                      isSelected={selectedMetricId === metric.id}
+                      onSelect={() => setSelectedMetricId(metric.id)}
+                    />
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-border py-6 text-center">
+                    <p className="text-xs text-muted-foreground">No metrics yet</p>
+                  </div>
+                )}
               </SortableContext>
             </DndContext>
-            <Button
-              variant="outline"
-              className="w-full gap-2 border-dashed"
-              onClick={() => setModalOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Add Metric
-            </Button>
-          </AccordionContent>
-        );
-      case "narrative":
-        return (
-          <AccordionContent className="space-y-4 pb-4">
-            <div className="space-y-2">
-              <Label htmlFor="narrative">Story / Description</Label>
-              <Textarea
-                id="narrative"
-                rows={4}
-                value={narrative}
-                onChange={(e) => setNarrative(e.target.value)}
-                placeholder="Share the story behind your impact..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Photo</Label>
-              <div className="flex h-24 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-muted-foreground/30">
-                <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                  <ImageIcon className="h-6 w-6" />
-                  <span className="text-xs">Click to upload</span>
-                </div>
-              </div>
-            </div>
-          </AccordionContent>
-        );
-      case "financials":
-        return (
-          <AccordionContent className="space-y-4 pb-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="program">Program %</Label>
-                <Input
-                  id="program"
-                  type="number"
-                  value={financials.program}
-                  onChange={(e) =>
-                    setFinancials({ ...financials, program: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="admin">Admin %</Label>
-                <Input
-                  id="admin"
-                  type="number"
-                  value={financials.admin}
-                  onChange={(e) =>
-                    setFinancials({ ...financials, admin: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fundraising">Fundraising %</Label>
-                <Input
-                  id="fundraising"
-                  type="number"
-                  value={financials.fundraising}
-                  onChange={(e) =>
-                    setFinancials({ ...financials, fundraising: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-            </div>
-          </AccordionContent>
-        );
-    }
-  };
-
-  return (
-    <div className="flex h-screen animate-fade-in">
-      {/* Left Column - Editor */}
-      <div className="flex w-2/5 flex-col border-r border-border">
-        <div className="border-b border-border p-4">
-          <h1 className="text-xl font-semibold text-foreground">Report Builder</h1>
-          <p className="text-sm text-muted-foreground">
-            Create your impact report
-            {sectorData && (
-              <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                {sectorData.label}
-              </span>
-            )}
-          </p>
-        </div>
-
-        <Tabs defaultValue="content" className="flex-1">
-          <div className="border-b border-border px-4">
-            <TabsList className="h-12 w-full justify-start gap-4 bg-transparent p-0">
-              <TabsTrigger
-                value="content"
-                className="h-12 rounded-none border-b-2 border-transparent px-1 data-[state=active]:border-primary data-[state=active]:shadow-none"
-              >
-                Content
-              </TabsTrigger>
-              <TabsTrigger
-                value="design"
-                className="h-12 rounded-none border-b-2 border-transparent px-1 data-[state=active]:border-primary data-[state=active]:shadow-none"
-              >
-                Design / Theme
-              </TabsTrigger>
-            </TabsList>
           </div>
-
-          <TabsContent value="content" className="flex-1 overflow-auto p-4">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleSectionDragEnd}
-            >
-              <SortableContext
-                items={sections.map((s) => s.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <Accordion type="multiple" defaultValue={["header", "metrics"]} className="space-y-2">
-                  {sections.map((section) => (
-                    <SortableSectionAccordion key={section.id} section={section}>
-                      {renderSectionContent(section.id)}
-                    </SortableSectionAccordion>
-                  ))}
-                </Accordion>
-              </SortableContext>
-            </DndContext>
-          </TabsContent>
-
-          <TabsContent value="design" className="flex-1 overflow-auto p-4">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label>Primary Color</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="h-10 w-10 cursor-pointer rounded border border-border"
-                  />
-                  <Input
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3 w-full gap-2 border-dashed"
+            onClick={() => setModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Metric
+          </Button>
+        </div>
       </div>
 
       {/* Right Column - Preview */}
@@ -399,7 +202,7 @@ export default function ReportBuilder() {
 
         {/* Preview Area */}
         <div className="flex flex-1 items-center justify-center overflow-auto p-8">
-          <ReportPreview
+          <InteractiveReportPreview
             title={title}
             dateRange={dateRange}
             metrics={metrics}
@@ -407,6 +210,11 @@ export default function ReportBuilder() {
             financials={financials}
             viewMode={viewMode}
             primaryColor={primaryColor}
+            selectedMetricId={selectedMetricId}
+            onMetricSelect={setSelectedMetricId}
+            onMetricUpdate={handleMetricUpdate}
+            onCanvasClick={() => setSelectedMetricId(null)}
+            onAddMetric={() => setModalOpen(true)}
           />
         </div>
       </div>

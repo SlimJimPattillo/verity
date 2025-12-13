@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 interface SortableMetricCardProps {
   metric: Metric;
   onDelete?: (id: string) => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 const unitIcons = {
@@ -17,7 +19,7 @@ const unitIcons = {
   "#": Hash,
 };
 
-export function SortableMetricCard({ metric, onDelete }: SortableMetricCardProps) {
+export function SortableMetricCard({ metric, onDelete, isSelected, onSelect }: SortableMetricCardProps) {
   const {
     attributes,
     listeners,
@@ -38,72 +40,72 @@ export function SortableMetricCard({ metric, onDelete }: SortableMetricCardProps
     <div
       ref={setNodeRef}
       style={style}
+      onClick={onSelect}
       className={cn(
-        "group flex items-center gap-3 rounded-lg border p-3 transition-all",
+        "group flex cursor-pointer items-center gap-2 rounded-lg border p-2 transition-all",
         metric.type === "outcome"
           ? "border-success/30 bg-success/5"
           : "border-border bg-card",
-        isDragging && "opacity-50 shadow-lg"
+        isDragging && "opacity-50 shadow-lg",
+        isSelected && "ring-2 ring-primary ring-offset-1"
       )}
     >
       <div
         {...attributes}
         {...listeners}
         className="cursor-grab touch-none"
+        onClick={(e) => e.stopPropagation()}
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground transition-opacity group-hover:opacity-100" />
+        <GripVertical className="h-3 w-3 text-muted-foreground" />
       </div>
       
       <div
         className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded",
           metric.type === "outcome" ? "bg-success/10" : "bg-primary/10"
         )}
       >
         <Icon
           className={cn(
-            "h-5 w-5",
+            "h-3.5 w-3.5",
             metric.type === "outcome" ? "text-success" : "text-primary"
           )}
         />
       </div>
       
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-foreground">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-foreground">
             {metric.unit === "$" && "$"}
             {metric.value.toLocaleString()}
             {metric.unit === "%" && "%"}
           </span>
-          <span className="text-sm text-muted-foreground">{metric.label}</span>
+          <span className="truncate text-[10px] text-muted-foreground">{metric.label}</span>
         </div>
-        {metric.comparison && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <TrendingUp className="h-3 w-3 text-success" />
-            {metric.comparison}
-          </div>
-        )}
       </div>
 
       <div
         className={cn(
-          "shrink-0 rounded px-2 py-0.5 text-xs font-medium uppercase tracking-wide",
+          "shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
           metric.type === "outcome"
             ? "bg-success/10 text-success"
             : "bg-muted text-muted-foreground"
         )}
       >
-        {metric.type}
+        {metric.type === "outcome" ? "out" : "in"}
       </div>
 
       {onDelete && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={() => onDelete(metric.id)}
+          className="h-6 w-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(metric.id);
+          }}
         >
-          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+          <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
         </Button>
       )}
     </div>
