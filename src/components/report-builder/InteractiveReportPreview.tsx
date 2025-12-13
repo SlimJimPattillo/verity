@@ -2,6 +2,7 @@ import { Metric, mockOrganization } from "@/lib/mockData";
 import { FinancialsDonutChart } from "@/components/charts/FinancialsDonutChart";
 import { EditableMetricCard } from "./EditableMetricCard";
 import { Plus } from "lucide-react";
+import verityLogoImg from "@/assets/verity-logo.png";
 import { cn } from "@/lib/utils";
 
 interface InteractiveReportPreviewProps {
@@ -113,11 +114,11 @@ export function InteractiveReportPreview({
           <h1 className="text-xl font-bold text-white">{title || "Impact Report"}</h1>
           <p className="text-sm text-white/80">{dateRange || "January - December 2024"}</p>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
-          <span className="text-sm font-bold text-white">
-            {mockOrganization.name.split(" ").map((w) => w[0]).join("")}
-          </span>
-        </div>
+        <img
+          src={verityLogoImg}
+          alt="Verity Logo"
+          className="h-10 w-10 object-contain"
+        />
       </div>
 
       {/* Hero Zone - Main Outcome */}

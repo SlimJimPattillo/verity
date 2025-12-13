@@ -10,6 +10,7 @@ import { sectorConfigs, Sector } from "@/lib/sectorData";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import verityLogoImg from "@/assets/verity-logo.png";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -58,13 +59,22 @@ export default function Dashboard() {
 
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-[#1F2937] lg:text-3xl">
-            Verity: Bring your impact to light.
-          </h1>
-          <p className="mt-2 max-w-2xl text-[#1F2937]/80">
-            Truth hides in the well of disconnected systems, spreadsheets, and CRM data. Verity brings it to the surface, shining a light on your impact for donors, grants, and your community.
-          </p>
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary">
+            <img
+              src={verityLogoImg}
+              alt="Verity Logo"
+              className="h-10 w-10 object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="font-serif text-2xl font-bold text-[#1F2937] lg:text-3xl">
+              Verity: Bring your impact to light.
+            </h1>
+            <p className="mt-2 max-w-2xl text-[#1F2937]/80">
+              Truth hides in the well of disconnected systems, spreadsheets, and CRM data. Verity brings it to the surface, shining a light on your impact for donors, grants, and your community.
+            </p>
+          </div>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           {/* Getting Started Widget - only show if not dismissed */}
