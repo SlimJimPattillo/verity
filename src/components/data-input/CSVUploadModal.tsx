@@ -39,12 +39,26 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
 
   const parseXLSX = (arrayBuffer: ArrayBuffer): ParsedRow[] => {
     try {
+      console.log("Starting XLSX parse, buffer size:", arrayBuffer.byteLength);
+
       // Parse the Excel file
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      console.log("Workbook parsed. Sheets found:", workbook.SheetNames);
+
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        toast.error("Excel file has no worksheets");
+        return [];
+      }
 
       // Get the first worksheet
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
+      console.log("Using sheet:", firstSheetName);
+
+      if (!worksheet) {
+        toast.error("Could not read worksheet");
+        return [];
+      }
 
       // Convert to JSON with header row
       const data = XLSX.utils.sheet_to_json(worksheet, {
@@ -52,10 +66,15 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
         defval: '', // Default value for empty cells
       }) as Record<string, string>[];
 
+      console.log("Rows extracted from Excel:", data.length);
+
       if (data.length === 0) {
-        toast.error("Excel file is empty");
+        toast.error("Excel file is empty or has no data rows");
         return [];
       }
+
+      // Log first row to help debug column issues
+      console.log("First row columns:", Object.keys(data[0]));
 
       // Normalize headers to lowercase
       const normalizedData = data.map((row) => {
@@ -66,10 +85,13 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
         return normalizedRow;
       });
 
+      console.log("Normalized first row columns:", Object.keys(normalizedData[0]));
+
       return parseDataRows(normalizedData);
     } catch (error) {
       console.error("XLSX parsing error:", error);
-      toast.error("Error parsing Excel file");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Error parsing Excel file: ${errorMessage}`);
       return [];
     }
   };
@@ -151,8 +173,10 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
   };
 
   const handleFile = useCallback((file: File) => {
-    const isCSV = file.name.endsWith(".csv");
-    const isXLSX = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
+    // Make file extension check case-insensitive
+    const fileName = file.name.toLowerCase();
+    const isCSV = fileName.endsWith(".csv");
+    const isXLSX = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
 
     if (!isCSV && !isXLSX) {
       toast.error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)");
@@ -163,25 +187,57 @@ export function CSVUploadModal({ open, onOpenChange, onImport }: CSVUploadModalP
 
     const reader = new FileReader();
 
+    // Add error handler
+    reader.onerror = () => {
+      console.error("File reading error:", reader.error);
+      toast.error("Failed to read file. Please try again.");
+    };
+
     if (isXLSX) {
       // Read Excel file as ArrayBuffer
       reader.onload = (e) => {
-        const arrayBuffer = e.target?.result as ArrayBuffer;
-        const parsed = parseXLSX(arrayBuffer);
-        if (parsed.length > 0) {
-          setParsedData(parsed);
-          setStep("preview");
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          if (!arrayBuffer) {
+            toast.error("Failed to read file content");
+            return;
+          }
+          console.log("Parsing XLSX file:", file.name, "Size:", arrayBuffer.byteLength, "bytes");
+          const parsed = parseXLSX(arrayBuffer);
+          console.log("Parsed rows:", parsed.length);
+          if (parsed.length > 0) {
+            setParsedData(parsed);
+            setStep("preview");
+          } else {
+            toast.error("No valid data found in Excel file");
+          }
+        } catch (error) {
+          console.error("Error processing Excel file:", error);
+          toast.error("Failed to process Excel file");
         }
       };
       reader.readAsArrayBuffer(file);
     } else {
       // Read CSV file as text
       reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const parsed = parseCSV(text);
-        if (parsed.length > 0) {
-          setParsedData(parsed);
-          setStep("preview");
+        try {
+          const text = e.target?.result as string;
+          if (!text) {
+            toast.error("Failed to read file content");
+            return;
+          }
+          console.log("Parsing CSV file:", file.name);
+          const parsed = parseCSV(text);
+          console.log("Parsed rows:", parsed.length);
+          if (parsed.length > 0) {
+            setParsedData(parsed);
+            setStep("preview");
+          } else {
+            toast.error("No valid data found in CSV file");
+          }
+        } catch (error) {
+          console.error("Error processing CSV file:", error);
+          toast.error("Failed to process CSV file");
         }
       };
       reader.readAsText(file);
