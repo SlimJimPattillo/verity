@@ -28,7 +28,7 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-primary-foreground/20 px-4">
         <div className="flex items-center gap-3">
-          <VerityLogo className="h-12 w-auto" />
+          <VerityLogo className="h-10 w-10" inverted />
           {!collapsed && (
             <span className="text-lg text-white" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
               Verity
