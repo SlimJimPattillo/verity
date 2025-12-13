@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Utensils, GraduationCap, Heart, PawPrint, Globe, ArrowRight } from "lucide-react";
+import { Utensils, GraduationCap, Heart, PawPrint, Globe, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { Sector } from "@/lib/sectorData";
 import { cn } from "@/lib/utils";
+import { VerityLogo } from "@/components/icons/VerityLogo";
 
 interface WelcomeModalProps {
   open: boolean;
@@ -12,17 +13,24 @@ interface WelcomeModalProps {
   onSetUserName: (name: string) => void;
 }
 
-const sectors: { id: Sector; label: string; icon: React.ElementType; description: string }[] = [
-  { id: "food", label: "Food Security", icon: Utensils, description: "Food banks, pantries, meal programs" },
-  { id: "education", label: "Education & Youth", icon: GraduationCap, description: "Schools, tutoring, scholarships" },
-  { id: "healthcare", label: "Healthcare", icon: Heart, description: "Clinics, wellness, mental health" },
-  { id: "animal", label: "Animal Welfare", icon: PawPrint, description: "Shelters, rescue, adoption" },
-  { id: "other", label: "Other", icon: Globe, description: "Community, environment, arts" },
+const sectors: { id: Sector; label: string; icon: React.ElementType; description: string; color: string }[] = [
+  { id: "food", label: "Food Security", icon: Utensils, description: "Food banks, pantries, meal programs", color: "from-orange-500 to-amber-500" },
+  { id: "education", label: "Education & Youth", icon: GraduationCap, description: "Schools, tutoring, scholarships", color: "from-blue-500 to-indigo-500" },
+  { id: "healthcare", label: "Healthcare", icon: Heart, description: "Clinics, wellness, mental health", color: "from-rose-500 to-pink-500" },
+  { id: "animal", label: "Animal Welfare", icon: PawPrint, description: "Shelters, rescue, adoption", color: "from-emerald-500 to-teal-500" },
+  { id: "other", label: "Other", icon: Globe, description: "Community, environment, arts", color: "from-violet-500 to-purple-500" },
+];
+
+const benefits = [
+  "Pre-loaded metrics tailored to your sector",
+  "Grant-ready narrative templates", 
+  "Professional impact report designs",
 ];
 
 export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeModalProps) {
-  const [step, setStep] = useState<"name" | "sector">("name");
+  const [step, setStep] = useState<"welcome" | "name" | "sector">("welcome");
   const [name, setName] = useState("");
+  const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
 
   const handleNameSubmit = () => {
     if (name.trim()) {
@@ -37,81 +45,173 @@ export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeMod
     }
   };
 
+  const handleSectorSelect = (sectorId: Sector) => {
+    setSelectedSector(sectorId);
+    // Small delay for visual feedback before closing
+    setTimeout(() => {
+      onSelectSector(sectorId);
+    }, 300);
+  };
+
   return (
     <Dialog open={open}>
       <DialogContent 
-        className="max-w-2xl gap-0 overflow-hidden p-0 [&>button]:hidden"
+        className="max-w-2xl gap-0 overflow-hidden border-0 p-0 shadow-2xl [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        {/* Header */}
-        <div className="bg-gradient-to-br from-primary to-primary/80 px-8 py-10 text-center text-primary-foreground">
-          <h1 className="text-2xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
-            Welcome to Verity
-          </h1>
-          <p className="mt-2 text-primary-foreground/80">
-            {step === "name" 
-              ? "Let's start by getting to know you."
-              : "We'll tailor your metrics and templates based on your mission."
-            }
-          </p>
-        </div>
-
-        {step === "name" ? (
-          /* Name Input Step */
-          <div className="p-8">
-            <div className="mx-auto max-w-sm space-y-6">
-              <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground">
-                  What's your name?
-                </p>
+        {step === "welcome" ? (
+          /* Welcome Step */
+          <div className="relative">
+            {/* Animated Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-emerald-600 opacity-95" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.1),transparent_40%)]" />
+            
+            <div className="relative px-8 py-16 text-center text-primary-foreground">
+              {/* Logo */}
+              <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                <VerityLogo className="h-14 w-14" inverted />
               </div>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Enter your name"
-                className="h-12 text-center text-lg"
-                autoFocus
-                maxLength={50}
-              />
+              
+              <h1 className="mb-3 text-4xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
+                Welcome to Verity
+              </h1>
+              <p className="mx-auto mb-10 max-w-md text-lg text-primary-foreground/80">
+                Your nonprofit's impact, beautifully told. Let's set up your workspace in 30 seconds.
+              </p>
+
+              {/* Benefits */}
+              <div className="mx-auto mb-10 max-w-sm space-y-3 text-left">
+                {benefits.map((benefit, i) => (
+                  <div 
+                    key={benefit} 
+                    className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm"
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-secondary" />
+                    <span className="text-sm font-medium">{benefit}</span>
+                  </div>
+                ))}
+              </div>
+
               <Button 
-                onClick={handleNameSubmit}
-                disabled={!name.trim()}
-                className="w-full gap-2"
+                onClick={() => setStep("name")}
                 size="lg"
+                className="gap-2 bg-white text-primary hover:bg-white/90"
               >
-                Continue
+                Get Started
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
+        ) : step === "name" ? (
+          /* Name Input Step */
+          <div>
+            {/* Progress indicator */}
+            <div className="flex gap-1.5 p-4">
+              <div className="h-1 flex-1 rounded-full bg-primary" />
+              <div className="h-1 flex-1 rounded-full bg-muted" />
+            </div>
+
+            <div className="p-8 pt-4">
+              <div className="mx-auto max-w-sm">
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                  <h2 className="mb-2 text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    First, what's your name?
+                  </h2>
+                  <p className="text-muted-foreground">
+                    We'll personalize your dashboard experience.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Enter your name"
+                    className="h-14 text-center text-lg"
+                    autoFocus
+                    maxLength={50}
+                  />
+                  <Button 
+                    onClick={handleNameSubmit}
+                    disabled={!name.trim()}
+                    className="w-full gap-2"
+                    size="lg"
+                  >
+                    Continue
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           /* Sector Grid Step */
-          <div className="p-8">
-            <p className="mb-6 text-center text-sm font-medium text-muted-foreground">
-              What type of organization are you?
-            </p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {sectors.map((sector) => (
-                <button
-                  key={sector.id}
-                  onClick={() => onSelectSector(sector.id)}
-                  className={cn(
-                    "group flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-card p-6 transition-all",
-                    "hover:border-primary hover:bg-primary/5 hover:shadow-md",
-                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                  )}
-                >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
-                    <sector.icon className="h-7 w-7 text-muted-foreground transition-colors group-hover:text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground">{sector.label}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{sector.description}</p>
-                  </div>
-                </button>
-              ))}
+          <div>
+            {/* Progress indicator */}
+            <div className="flex gap-1.5 p-4">
+              <div className="h-1 flex-1 rounded-full bg-primary" />
+              <div className="h-1 flex-1 rounded-full bg-primary" />
+            </div>
+
+            <div className="p-8 pt-4">
+              <div className="mb-8 text-center">
+                <h2 className="mb-2 text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  What type of organization are you?
+                </h2>
+                <p className="text-muted-foreground">
+                  We'll customize your metrics, templates, and AI suggestions.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {sectors.map((sector) => (
+                  <button
+                    key={sector.id}
+                    onClick={() => handleSectorSelect(sector.id)}
+                    disabled={selectedSector !== null}
+                    className={cn(
+                      "group relative flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-card p-5 transition-all duration-200",
+                      "hover:border-primary hover:shadow-lg hover:-translate-y-0.5",
+                      "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                      "disabled:pointer-events-none",
+                      selectedSector === sector.id && "border-primary bg-primary/5 ring-2 ring-primary"
+                    )}
+                  >
+                    {/* Gradient background on hover */}
+                    <div className={cn(
+                      "absolute inset-0 rounded-xl bg-gradient-to-br opacity-0 transition-opacity",
+                      sector.color,
+                      "group-hover:opacity-5",
+                      selectedSector === sector.id && "opacity-10"
+                    )} />
+                    
+                    <div className={cn(
+                      "relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br transition-transform duration-200 group-hover:scale-110",
+                      sector.color
+                    )}>
+                      <sector.icon className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="relative text-center">
+                      <p className="font-semibold text-foreground">{sector.label}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{sector.description}</p>
+                    </div>
+
+                    {/* Selected checkmark */}
+                    {selectedSector === sector.id && (
+                      <div className="absolute right-2 top-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
