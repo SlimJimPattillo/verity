@@ -121,10 +121,28 @@ export default function ReportBuilder() {
       {/* Left Column - Inspector Panel */}
       <div className="flex w-80 flex-col border-r border-border bg-card">
         <div className="border-b border-border p-4">
-          <h1 className="text-lg font-semibold text-foreground">Inspector</h1>
-          <p className="text-xs text-muted-foreground">
-            {selectedMetric ? "Editing metric" : "Report settings"}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">
+                {selectedMetric ? "Edit Metric" : "Report Settings"}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {selectedMetric 
+                  ? "Adjust properties in the panel below" 
+                  : "Click a metric in preview to edit it"}
+              </p>
+            </div>
+            {selectedMetric && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMetricId(null)}
+                className="text-xs"
+              >
+                Done
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto p-4">
@@ -142,7 +160,7 @@ export default function ReportBuilder() {
         <div className="border-t border-border p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Metrics ({metrics.length})
+              Your Metrics ({metrics.length})
             </span>
           </div>
           <div className="max-h-48 space-y-2 overflow-auto">
@@ -166,8 +184,12 @@ export default function ReportBuilder() {
                     />
                   ))
                 ) : (
-                  <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-border py-6 text-center">
-                    <p className="text-xs text-muted-foreground">No metrics yet</p>
+                  <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border py-8 text-center">
+                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">No metrics yet</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Click below to add your first metric</p>
                   </div>
                 )}
               </SortableContext>
@@ -176,7 +198,7 @@ export default function ReportBuilder() {
           <Button
             variant="outline"
             size="sm"
-            className="mt-3 w-full gap-2 border-dashed"
+            className="mt-3 w-full gap-2 border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
             onClick={() => setModalOpen(true)}
           >
             <Plus className="h-4 w-4" />
