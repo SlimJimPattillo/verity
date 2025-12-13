@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { SortableMetricCard } from "@/components/report-builder/SortableMetricCard";
-import { MetricBuilderModal } from "@/components/report-builder/MetricBuilderModal";
 import { InteractiveReportPreview } from "@/components/report-builder/InteractiveReportPreview";
 import { InspectorPanel } from "@/components/report-builder/InspectorPanel";
+import { AddMetricModal } from "@/components/data-input/AddMetricModal";
+import { CSVUploadModal } from "@/components/data-input/CSVUploadModal";
 import { Metric, mockOrganization } from "@/lib/mockData";
 import { sectorConfigs } from "@/lib/sectorData";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -37,6 +38,7 @@ export default function ReportBuilder() {
   });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [csvModalOpen, setCsvModalOpen] = useState(false);
   const [title, setTitle] = useState("2024 Annual Impact Report");
   const [dateRange, setDateRange] = useState("January - December 2024");
   const [narrative, setNarrative] = useState(() => {
@@ -85,6 +87,14 @@ export default function ReportBuilder() {
       id: Date.now().toString(),
     };
     setMetrics([...metrics, newMetric]);
+  };
+
+  const handleImportMetrics = (newMetrics: Omit<Metric, "id">[]) => {
+    const metricsWithIds = newMetrics.map((m, i) => ({
+      ...m,
+      id: `import-${Date.now()}-${i}`,
+    }));
+    setMetrics([...metrics, ...metricsWithIds]);
   };
 
   const handleDeleteMetric = (id: string) => {
@@ -195,15 +205,25 @@ export default function ReportBuilder() {
               </SortableContext>
             </DndContext>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3 w-full gap-2 border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
-            onClick={() => setModalOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add Metric
-          </Button>
+          <div className="flex gap-2 mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-2 border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
+              onClick={() => setModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
+              onClick={() => setCsvModalOpen(true)}
+            >
+              <Upload className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -242,10 +262,15 @@ export default function ReportBuilder() {
       </div>
 
       {/* Metric Builder Modal */}
-      <MetricBuilderModal
+      <AddMetricModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSave={handleAddMetric}
+      />
+      <CSVUploadModal
+        open={csvModalOpen}
+        onOpenChange={setCsvModalOpen}
+        onImport={handleImportMetrics}
       />
     </div>
   );
