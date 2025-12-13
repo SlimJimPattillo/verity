@@ -1,4 +1,4 @@
-import { Palette, Type, Image } from "lucide-react";
+import { Palette, Type, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -7,8 +7,72 @@ interface CustomizeStepProps {
     title: string;
     dateRange: string;
     primaryColor: string;
+    secondaryColor: string;
+    neutralColor: string;
   };
-  onSettingsChange: (updates: Partial<{ title: string; dateRange: string; primaryColor: string }>) => void;
+  onSettingsChange: (updates: Partial<{ 
+    title: string; 
+    dateRange: string; 
+    primaryColor: string;
+    secondaryColor: string;
+    neutralColor: string;
+  }>) => void;
+}
+
+const colorPresets = {
+  primary: ["#059669", "#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B"],
+  secondary: ["#FFC27B", "#93C5FD", "#C4B5FD", "#FBCFE8", "#FDE68A"],
+  neutral: ["#F9FAFB", "#F3F4F6", "#E5E7EB", "#1F2937", "#111827"],
+};
+
+interface ColorPickerProps {
+  label: string;
+  description: string;
+  value: string;
+  onChange: (value: string) => void;
+  presets: string[];
+}
+
+function ColorPicker({ label, description, value, onChange, presets }: ColorPickerProps) {
+  return (
+    <div className="space-y-2">
+      <div>
+        <Label className="text-sm font-medium">{label}</Label>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+          <div 
+            className="h-10 w-10 rounded-lg border border-border shadow-sm cursor-pointer transition-transform hover:scale-105"
+            style={{ backgroundColor: value }}
+          />
+        </div>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-10 w-28 font-mono text-sm uppercase"
+        />
+        <div className="flex gap-1.5">
+          {presets.map((color) => (
+            <button
+              key={color}
+              onClick={() => onChange(color)}
+              className={`h-6 w-6 rounded-full border-2 transition-all hover:scale-110 ${
+                value === color ? "border-foreground" : "border-transparent"
+              }`}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function CustomizeStep({ settings, onSettingsChange }: CustomizeStepProps) {
@@ -25,7 +89,6 @@ export function CustomizeStep({ settings, onSettingsChange }: CustomizeStepProps
       </div>
 
       <div className="space-y-4">
-        {/* Report Title */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-sm font-medium">
             <Type className="h-4 w-4 text-muted-foreground" />
@@ -39,10 +102,9 @@ export function CustomizeStep({ settings, onSettingsChange }: CustomizeStepProps
           />
         </div>
 
-        {/* Date Range */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-sm font-medium">
-            <Image className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-muted-foreground" />
             Date Range
           </Label>
           <Input
@@ -52,48 +114,37 @@ export function CustomizeStep({ settings, onSettingsChange }: CustomizeStepProps
             className="h-10"
           />
         </div>
-
-        {/* Brand Color */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2 text-sm font-medium">
-            <Palette className="h-4 w-4 text-muted-foreground" />
-            Brand Color
-          </Label>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="color"
-                value={settings.primaryColor}
-                onChange={(e) => onSettingsChange({ primaryColor: e.target.value })}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-              <div 
-                className="h-10 w-10 rounded-lg border border-border shadow-sm cursor-pointer transition-transform hover:scale-105"
-                style={{ backgroundColor: settings.primaryColor }}
-              />
-            </div>
-            <Input
-              value={settings.primaryColor}
-              onChange={(e) => onSettingsChange({ primaryColor: e.target.value })}
-              className="h-10 flex-1 font-mono text-sm uppercase"
-            />
-          </div>
-        </div>
       </div>
 
-      {/* Quick Color Presets */}
-      <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Quick Presets</Label>
-        <div className="flex gap-2">
-          {["#059669", "#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#1F2937"].map((color) => (
-            <button
-              key={color}
-              onClick={() => onSettingsChange({ primaryColor: color })}
-              className="h-8 w-8 rounded-full border-2 border-transparent hover:border-foreground/20 transition-all hover:scale-110"
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
+      <div className="space-y-4 pt-2">
+        <h3 className="text-sm font-medium flex items-center gap-2">
+          <Palette className="h-4 w-4 text-muted-foreground" />
+          Brand Colors
+        </h3>
+        
+        <ColorPicker
+          label="Primary"
+          description="Headers, buttons, and key elements"
+          value={settings.primaryColor}
+          onChange={(color) => onSettingsChange({ primaryColor: color })}
+          presets={colorPresets.primary}
+        />
+        
+        <ColorPicker
+          label="Secondary"
+          description="Charts, icons, and accents"
+          value={settings.secondaryColor}
+          onChange={(color) => onSettingsChange({ secondaryColor: color })}
+          presets={colorPresets.secondary}
+        />
+        
+        <ColorPicker
+          label="Neutral"
+          description="Backgrounds and surfaces"
+          value={settings.neutralColor}
+          onChange={(color) => onSettingsChange({ neutralColor: color })}
+          presets={colorPresets.neutral}
+        />
       </div>
     </div>
   );

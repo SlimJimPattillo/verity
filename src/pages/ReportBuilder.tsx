@@ -45,6 +45,8 @@ export default function ReportBuilder() {
   });
   const [viewMode, setViewMode] = useState<"pdf" | "social">("pdf");
   const [primaryColor, setPrimaryColor] = useState(mockOrganization.primaryColor);
+  const [secondaryColor, setSecondaryColor] = useState("#FFC27B");
+  const [neutralColor, setNeutralColor] = useState("#F9FAFB");
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
 
   // Update data when sector changes
@@ -82,10 +84,12 @@ export default function ReportBuilder() {
     setMetrics(metrics.map((m) => (m.id === id ? { ...m, ...updates } : m)));
   };
 
-  const handleSettingsUpdate = (updates: Partial<{ title: string; dateRange: string; primaryColor: string }>) => {
+  const handleSettingsUpdate = (updates: Partial<{ title: string; dateRange: string; primaryColor: string; secondaryColor: string; neutralColor: string }>) => {
     if (updates.title !== undefined) setTitle(updates.title);
     if (updates.dateRange !== undefined) setDateRange(updates.dateRange);
     if (updates.primaryColor !== undefined) setPrimaryColor(updates.primaryColor);
+    if (updates.secondaryColor !== undefined) setSecondaryColor(updates.secondaryColor);
+    if (updates.neutralColor !== undefined) setNeutralColor(updates.neutralColor);
   };
 
   const handleExport = (format: "pdf" | "png" | "share") => {
@@ -153,7 +157,7 @@ export default function ReportBuilder() {
       case "customize":
         return (
           <CustomizeStep
-            settings={{ title, dateRange, primaryColor }}
+            settings={{ title, dateRange, primaryColor, secondaryColor, neutralColor }}
             onSettingsChange={handleSettingsUpdate}
           />
         );
