@@ -20,15 +20,20 @@ interface InteractiveReportPreviewProps {
   onAddMetric: () => void;
 }
 
-function EmptySlot({ onClick }: { onClick: () => void }) {
+function EmptySlot({ onClick, hint }: { onClick: () => void; hint?: string }) {
   return (
     <div
       onClick={onClick}
-      className="flex min-h-[100px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/50 p-4 transition-colors hover:border-primary hover:bg-primary/5"
+      className="flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:shadow-md group"
     >
-      <div className="flex items-center gap-2 text-slate-400">
-        <Plus className="h-4 w-4" />
-        <span className="text-sm font-medium">Drop Metric Here</span>
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 transition-colors group-hover:bg-primary/10">
+        <Plus className="h-5 w-5 text-slate-400 transition-colors group-hover:text-primary" />
+      </div>
+      <div className="text-center">
+        <span className="text-sm font-medium text-slate-500 group-hover:text-primary">Add Metric</span>
+        {hint && (
+          <p className="mt-1 text-xs text-slate-400">{hint}</p>
+        )}
       </div>
     </div>
   );
@@ -134,7 +139,7 @@ export function InteractiveReportPreview({
           />
         ) : (
           <div className="px-8 py-10">
-            <EmptySlot onClick={onAddMetric} />
+            <EmptySlot onClick={onAddMetric} hint="Add your headline impact metric" />
           </div>
         )}
       </div>
@@ -157,9 +162,9 @@ export function InteractiveReportPreview({
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4">
-            <EmptySlot onClick={onAddMetric} />
-            <EmptySlot onClick={onAddMetric} />
-            <EmptySlot onClick={onAddMetric} />
+            <EmptySlot onClick={onAddMetric} hint="Track activities" />
+            <EmptySlot onClick={onAddMetric} hint="Show effort" />
+            <EmptySlot onClick={onAddMetric} hint="Measure output" />
           </div>
         )}
       </div>
