@@ -234,7 +234,9 @@ export default function ReportBuilder() {
       ...m,
       id: `import-${Date.now()}-${i}`,
     }));
-    setMetrics([...metrics, ...metricsWithIds]);
+    // Replace existing metrics instead of appending
+    // This is expected behavior when uploading a file (replaces template/sector defaults)
+    setMetrics(metricsWithIds);
   };
 
   const handleMetricUpdate = (id: string, updates: Partial<Metric>) => {
