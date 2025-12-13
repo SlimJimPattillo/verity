@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Palette, Building2, User, Bell } from "lucide-react";
 import { mockOrganization, mockUser } from "@/lib/mockData";
+import verityLogoImg from "@/assets/verity-logo.png";
 
 export default function Settings() {
   const [primaryColor, setPrimaryColor] = useState("#059669");
@@ -203,11 +204,11 @@ export default function Settings() {
                     <h3 className="font-semibold text-white">{orgName}</h3>
                     <p className="text-sm text-white/80">Impact Report 2024</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
-                    <span className="text-sm font-bold text-white">
-                      {orgName.split(" ").map((w) => w[0]).join("")}
-                    </span>
-                  </div>
+                  <img
+                    src={verityLogoImg}
+                    alt="Verity Logo"
+                    className="h-10 w-10 object-contain"
+                  />
                 </div>
                 {/* Sample Content */}
                 <div className="p-6" style={{ backgroundColor: neutralSurface }}>
