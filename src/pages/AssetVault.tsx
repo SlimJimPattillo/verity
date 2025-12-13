@@ -9,7 +9,7 @@ import { Metric } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import { AddMetricModal } from "@/components/data-input/AddMetricModal";
 import { EditMetricModal } from "@/components/data-input/EditMetricModal";
-import { CSVUploadModal } from "@/components/data-input/CSVUploadModal";
+import { FileUploadModal } from "@/components/file-upload/FileUploadModal";
 import { NarrativeModal } from "@/components/data-input/NarrativeModal";
 import { QuickAddBar } from "@/components/data-input/QuickAddBar";
 import { toast } from "sonner";
@@ -637,7 +637,7 @@ export default function AssetVault() {
         onSave={handleEditMetric}
         metric={editingMetric}
       />
-      <CSVUploadModal
+      <FileUploadModal
         open={csvModalOpen}
         onOpenChange={setCsvModalOpen}
         onImport={handleImportMetrics}
