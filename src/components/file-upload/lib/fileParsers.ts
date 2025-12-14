@@ -90,12 +90,17 @@ async function parseCSV(
       let headers: string[] = [];
       let totalRows = 0;
       let processedRows = 0;
+      let hasHeaders = false;
+
+      // Detect if first line contains headers
+      const firstLine = text.split('\n')[0]?.toLowerCase() || '';
+      hasHeaders = firstLine.includes('label') || firstLine.includes('metric') || firstLine.includes('name');
 
       // Parse CSV with PapaParse
       Papa.parse(text, {
-        header: true,
+        header: hasHeaders,
         skipEmptyLines: true,
-        transformHeader: (header) => header.toLowerCase().trim(),
+        transformHeader: hasHeaders ? (header) => header.toLowerCase().trim() : undefined,
         step: (results, parser) => {
           // Store headers from first row
           if (processedRows === 0 && results.meta.fields) {
@@ -104,8 +109,26 @@ async function parseCSV(
 
           processedRows++;
 
+          // Convert array data to object if no headers
+          let rowData: Record<string, unknown>;
+          if (!hasHeaders && Array.isArray(results.data)) {
+            // Map array indices to field names
+            // Expected format: [label, value, type, unit, comparison, previousValue]
+            const arr = results.data as string[];
+            rowData = {
+              label: arr[0] || '',
+              value: arr[1] || '',
+              type: arr[2] || '',
+              unit: arr[3] || '',
+              comparison: arr[4] || '',
+              previousValue: arr[5] || '',
+            };
+          } else {
+            rowData = results.data as Record<string, unknown>;
+          }
+
           // Sanitize and validate row
-          const sanitized = sanitizeRow(results.data as Record<string, unknown>);
+          const sanitized = sanitizeRow(rowData);
           const metric = sanitizeMetric(sanitized);
           const validation = validateRow(metric, processedRows - 1);
 
