@@ -106,7 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authError) throw authError;
       if (!authData.user) throw new Error('No user returned from signup');
 
-      // 2. Create organization
+      // Check if email confirmation is required
+      if (!authData.session) {
+        // Email confirmation is enabled - user needs to verify their email
+        throw new Error('Please check your email to confirm your account before signing in.');
+      }
+
+      // 2. Create organization (only if session exists - email confirmed or confirmation disabled)
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .insert({
@@ -116,7 +122,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
-      if (orgError) throw orgError;
+      if (orgError) {
+        // Rollback: Delete the user if org creation fails
+        await supabase.auth.admin.deleteUser(authData.user.id).catch(console.error);
+        throw new Error('Failed to create organization. Please try again.');
+      }
 
       // 3. Create user profile
       const { error: profileError } = await supabase.from('user_profiles').insert({
@@ -125,7 +135,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         full_name: '',
       });
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        // Rollback: Delete the org and user if profile creation fails
+        await supabase.from('organizations').delete().eq('id', orgData.id).catch(console.error);
+        await supabase.auth.admin.deleteUser(authData.user.id).catch(console.error);
+        throw new Error('Failed to create user profile. Please try again.');
+      }
 
       setOrganizationId(orgData.id);
     } catch (error) {
@@ -141,10 +156,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide user-friendly error messages
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please confirm your email address before signing in.');
+        }
+        throw error;
+      }
     } catch (error) {
       console.error('Error signing in:', error);
       throw error instanceof Error ? error : new Error('Failed to sign in');
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error sending password reset:', error);
+      throw error instanceof Error ? error : new Error('Failed to send password reset email');
     }
   };
 
@@ -167,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signIn,
     signOut,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

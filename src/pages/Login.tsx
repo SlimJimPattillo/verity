@@ -13,20 +13,29 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [resetMode, setResetMode] = useState(false);
+  const { signIn, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      navigate("/");
+      if (resetMode) {
+        await resetPassword(email);
+        setSuccess("Password reset email sent! Check your inbox.");
+        setResetMode(false);
+      } else {
+        await signIn(email, password);
+        navigate("/");
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to sign in";
+      const errorMessage = err instanceof Error ? err.message : resetMode ? "Failed to send reset email" : "Failed to sign in";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -41,8 +50,12 @@ export default function Login() {
             <img src={verityLogoImg} alt="Verity Logo" className="h-12 w-12 object-contain" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-            <CardDescription>Sign in to your Verity account</CardDescription>
+            <CardTitle className="text-2xl font-bold">
+              {resetMode ? "Reset Password" : "Welcome back"}
+            </CardTitle>
+            <CardDescription>
+              {resetMode ? "Enter your email to receive a reset link" : "Sign in to your Verity account"}
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -50,6 +63,11 @@ export default function Login() {
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert>
+                <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
 
@@ -66,28 +84,54 @@ export default function Login() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
+            {!resetMode && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => setResetMode(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  {resetMode ? "Sending..." : "Signing in..."}
                 </>
               ) : (
-                "Sign in"
+                resetMode ? "Send Reset Link" : "Sign in"
               )}
             </Button>
+
+            {resetMode && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setResetMode(false);
+                  setError("");
+                  setSuccess("");
+                }}
+              >
+                Back to Sign In
+              </Button>
+            )}
 
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
