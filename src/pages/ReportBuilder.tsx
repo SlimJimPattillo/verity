@@ -252,16 +252,44 @@ export default function ReportBuilder() {
   };
 
   const handleExport = async (format: "pdf" | "png" | "share") => {
-    // Save before exporting
-    await saveReport();
-
     try {
+      // Validate required data
+      if (!organizationId) {
+        toast.error('Organization not found. Please log in again.');
+        return;
+      }
+
+      if (metrics.length === 0) {
+        toast.error('Please add at least one metric before exporting.');
+        return;
+      }
+
+      if (!title.trim()) {
+        toast.error('Please add a report title before exporting.');
+        return;
+      }
+
+      // Save before exporting
+      toast.loading('Saving report...', { id: 'save-before-export' });
+      await saveReport();
+
+      // Verify save succeeded by checking if we have a report ID
+      if (!currentReportId && format === 'share') {
+        toast.error('Failed to save report. Please try again.', { id: 'save-before-export' });
+        return;
+      }
+      toast.dismiss('save-before-export');
+
       // Load organization name for the PDF
-      const { data: orgData } = await supabase
+      const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('name')
         .eq('id', organizationId)
         .single();
+
+      if (orgError) {
+        console.error('Error loading organization:', orgError);
+      }
 
       const organizationName = orgData?.name || 'Your Organization';
 
@@ -290,14 +318,51 @@ export default function ReportBuilder() {
         });
         toast.success('Image downloaded successfully!', { id: 'png-export' });
       } else if (format === 'share') {
+        // Verify we have a saved report ID
+        if (!currentReportId) {
+          toast.error('Please save your report before sharing.');
+          return;
+        }
+
         // Copy report URL to clipboard
         const reportUrl = `${window.location.origin}/report-builder?id=${currentReportId}`;
-        await navigator.clipboard.writeText(reportUrl);
-        toast.success('Report link copied to clipboard!');
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(reportUrl);
+          toast.success('Report link copied to clipboard!');
+        } else {
+          // Fallback for browsers that don't support clipboard API
+          const textArea = document.createElement('textarea');
+          textArea.value = reportUrl;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            toast.success('Report link copied to clipboard!');
+          } catch (err) {
+            toast.error('Failed to copy link. Please copy manually: ' + reportUrl);
+          } finally {
+            document.body.removeChild(textArea);
+          }
+        }
       }
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export report');
+
+      // Provide specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('preview')) {
+          toast.error('Could not capture preview. Please ensure the preview is visible.', { id: 'png-export' });
+        } else if (error.message.includes('PDF')) {
+          toast.error('Failed to generate PDF. Please try again.', { id: 'pdf-export' });
+        } else {
+          toast.error(`Export failed: ${error.message}`);
+        }
+      } else {
+        toast.error('Failed to export report. Please try again.');
+      }
     }
   };
 

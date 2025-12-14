@@ -188,11 +188,43 @@ export async function generatePDF(props: ReportPDFProps): Promise<void> {
 }
 
 /**
- * Generate a shareable PNG image (using html2canvas would be needed for this)
- * For now, we'll just export the PDF
+ * Generate a shareable PNG image using html2canvas
  */
 export async function generatePNG(props: ReportPDFProps): Promise<void> {
-  // For PNG export, you would typically use html2canvas to capture the preview
-  // For now, fall back to PDF
-  return generatePDF(props);
+  try {
+    // Dynamically import html2canvas to avoid bundling issues
+    const html2canvas = (await import('html2canvas')).default;
+
+    // Find the preview element to capture
+    const previewElement = document.querySelector('[data-report-preview]') as HTMLElement;
+
+    if (!previewElement) {
+      throw new Error('Report preview element not found. Please ensure the preview is visible.');
+    }
+
+    // Capture the element as canvas
+    const canvas = await html2canvas(previewElement, {
+      backgroundColor: '#ffffff',
+      scale: 2, // Higher quality
+      logging: false,
+      useCORS: true,
+    });
+
+    // Convert canvas to blob and download
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        throw new Error('Failed to create image blob');
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${props.title.replace(/\s+/g, '-').toLowerCase()}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  } catch (error) {
+    console.error('Error generating PNG:', error);
+    throw new Error('Failed to generate PNG. Make sure the preview is visible and try again.');
+  }
 }

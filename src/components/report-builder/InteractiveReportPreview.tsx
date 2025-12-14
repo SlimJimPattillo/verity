@@ -65,7 +65,8 @@ export function InteractiveReportPreview({
 
   if (viewMode === "social") {
     return (
-      <div 
+      <div
+        data-report-preview
         className="social-container mx-auto flex flex-col overflow-hidden rounded-lg"
         onClick={handleCanvasClick}
       >
@@ -106,7 +107,8 @@ export function InteractiveReportPreview({
   }
 
   return (
-    <div 
+    <div
+      data-report-preview
       className="page-container mx-auto overflow-hidden rounded-sm"
       onClick={handleCanvasClick}
     >
