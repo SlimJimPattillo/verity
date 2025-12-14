@@ -28,11 +28,13 @@ interface ColorPickerProps {
 }
 
 function ColorPicker({ label, helperText, value, onChange }: ColorPickerProps) {
+  const id = `color-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
   return (
     <div className="space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <Label className="text-sm font-medium">{label}</Label>
+          <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
           <p className="mt-0.5 text-xs text-muted-foreground">{helperText}</p>
         </div>
       </div>
@@ -43,16 +45,22 @@ function ColorPicker({ label, helperText, value, onChange }: ColorPickerProps) {
         >
           <input
             type="color"
+            id={`${id}-picker`}
+            name={`${id}-picker`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            aria-label={`${label} color picker`}
           />
         </div>
         <Input
+          id={id}
+          name={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="flex-1 font-mono text-sm uppercase"
           maxLength={7}
+          aria-label={`${label} hex code`}
         />
       </div>
     </div>
@@ -80,11 +88,13 @@ export function CustomizeStep({ settings, onSettingsChange }: CustomizeStepProps
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm font-medium">
+            <Label htmlFor="report-title" className="flex items-center gap-2 text-sm font-medium">
               <Type className="h-4 w-4 text-muted-foreground" />
               Report Title
             </Label>
             <Input
+              id="report-title"
+              name="report-title"
               value={settings.title}
               onChange={(e) => onSettingsChange({ title: e.target.value })}
               placeholder="e.g., 2024 Annual Impact Report"
@@ -92,11 +102,13 @@ export function CustomizeStep({ settings, onSettingsChange }: CustomizeStepProps
           </div>
 
           <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm font-medium">
+            <Label htmlFor="date-range" className="flex items-center gap-2 text-sm font-medium">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               Date Range
             </Label>
             <Input
+              id="date-range"
+              name="date-range"
               value={settings.dateRange}
               onChange={(e) => onSettingsChange({ dateRange: e.target.value })}
               placeholder="e.g., January - December 2024"

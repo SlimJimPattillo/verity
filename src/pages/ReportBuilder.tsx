@@ -468,6 +468,7 @@ export default function ReportBuilder() {
           onStepClick={setCurrentStep}
         />
         <Button
+          type="button"
           onClick={saveReport}
           disabled={saving}
           className="gap-2"
@@ -499,6 +500,7 @@ export default function ReportBuilder() {
             <div className="flex gap-3">
               {currentIndex > 0 && (
                 <Button
+                  type="button"
                   variant="outline"
                   className="gap-2"
                   onClick={goToPreviousStep}
@@ -509,6 +511,7 @@ export default function ReportBuilder() {
               )}
               {currentIndex < stepOrder.length - 1 && (
                 <Button
+                  type="button"
                   className="flex-1 gap-2"
                   onClick={goToNextStep}
                   disabled={!canProceed()}
