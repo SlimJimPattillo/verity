@@ -8,8 +8,9 @@ interface ExportStepProps {
 
 export function ExportStep({ onExport }: ExportStepProps) {
   const handleExport = (format: "pdf" | "png" | "share") => {
+    console.log('ExportStep: handleExport called with format:', format);
     onExport(format);
-    toast.success(`Export started! Your ${format.toUpperCase()} will be ready shortly.`);
+    // Don't show success toast here - the parent handler will show appropriate messages
   };
 
   return (
@@ -26,9 +27,14 @@ export function ExportStep({ onExport }: ExportStepProps) {
 
       <div className="space-y-3">
         <Button
+          type="button"
           variant="outline"
           className="w-full h-16 justify-start gap-4 hover:border-primary hover:bg-primary/5"
-          onClick={() => handleExport("pdf")}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleExport("pdf");
+          }}
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
             <FileText className="h-5 w-5 text-red-600" />
@@ -40,9 +46,14 @@ export function ExportStep({ onExport }: ExportStepProps) {
         </Button>
 
         <Button
+          type="button"
           variant="outline"
           className="w-full h-16 justify-start gap-4 hover:border-primary hover:bg-primary/5"
-          onClick={() => handleExport("png")}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleExport("png");
+          }}
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
             <Image className="h-5 w-5 text-blue-600" />
@@ -54,9 +65,14 @@ export function ExportStep({ onExport }: ExportStepProps) {
         </Button>
 
         <Button
+          type="button"
           variant="outline"
           className="w-full h-16 justify-start gap-4 hover:border-primary hover:bg-primary/5"
-          onClick={() => handleExport("share")}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleExport("share");
+          }}
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
             <Share2 className="h-5 w-5 text-purple-600" />
