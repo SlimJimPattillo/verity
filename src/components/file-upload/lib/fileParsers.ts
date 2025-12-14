@@ -96,6 +96,9 @@ async function parseCSV(
       const firstLine = text.split('\n')[0]?.toLowerCase() || '';
       hasHeaders = firstLine.includes('label') || firstLine.includes('metric') || firstLine.includes('name');
 
+      console.log('[CSV Parser] First line:', text.split('\n')[0]);
+      console.log('[CSV Parser] Has headers:', hasHeaders);
+
       // Parse CSV with PapaParse
       Papa.parse(text, {
         header: hasHeaders,
@@ -109,12 +112,20 @@ async function parseCSV(
 
           processedRows++;
 
+          // Debug logging for first row
+          if (processedRows === 1) {
+            console.log('[CSV Parser] First row data:', results.data);
+            console.log('[CSV Parser] Is array:', Array.isArray(results.data));
+            console.log('[CSV Parser] Type:', typeof results.data);
+          }
+
           // Convert array data to object if no headers
           let rowData: Record<string, unknown>;
           if (!hasHeaders && Array.isArray(results.data)) {
             // Map array indices to field names
             // Expected format: [label, value, type, unit, comparison, previousValue]
             const arr = results.data as string[];
+            console.log('[CSV Parser] Mapping array to fields:', arr);
             rowData = {
               label: arr[0] || '',
               value: arr[1] || '',
@@ -123,8 +134,10 @@ async function parseCSV(
               comparison: arr[4] || '',
               previousValue: arr[5] || '',
             };
+            console.log('[CSV Parser] Mapped rowData:', rowData);
           } else {
             rowData = results.data as Record<string, unknown>;
+            console.log('[CSV Parser] Using object data:', rowData);
           }
 
           // Sanitize and validate row

@@ -262,12 +262,6 @@ export default function ReportBuilder() {
 
     try {
       // Validate required data
-      if (!organizationId) {
-        console.error('Export failed: No organizationId');
-        toast.error('Organization not found. Please log in again.');
-        return;
-      }
-
       if (metrics.length === 0) {
         console.error('Export failed: No metrics');
         toast.error('Please add at least one metric before exporting.');
@@ -280,31 +274,41 @@ export default function ReportBuilder() {
         return;
       }
 
-      console.log('Validation passed, starting save...');
+      // For sharing, require organizationId and save to database
+      if (format === 'share') {
+        if (!organizationId) {
+          console.error('Export failed: No organizationId');
+          toast.error('Please complete onboarding to share reports.');
+          return;
+        }
 
-      // Save before exporting
-      toast.loading('Saving report...', { id: 'save-before-export' });
-      await saveReport();
+        console.log('Validation passed, starting save...');
+        toast.loading('Saving report...', { id: 'save-before-export' });
+        await saveReport();
 
-      // Verify save succeeded by checking if we have a report ID
-      if (!currentReportId && format === 'share') {
-        toast.error('Failed to save report. Please try again.', { id: 'save-before-export' });
-        return;
-      }
-      toast.dismiss('save-before-export');
-
-      // Load organization name for the PDF
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('name')
-        .eq('id', organizationId)
-        .single();
-
-      if (orgError) {
-        console.error('Error loading organization:', orgError);
+        // Verify save succeeded by checking if we have a report ID
+        if (!currentReportId) {
+          toast.error('Failed to save report. Please try again.', { id: 'save-before-export' });
+          return;
+        }
+        toast.dismiss('save-before-export');
       }
 
-      const organizationName = orgData?.name || 'Your Organization';
+      // Load organization name for the PDF/PNG (if available)
+      let organizationName = 'Your Organization';
+      if (organizationId) {
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('id', organizationId)
+          .single();
+
+        if (orgError) {
+          console.error('Error loading organization:', orgError);
+        } else {
+          organizationName = orgData?.name || 'Your Organization';
+        }
+      }
 
       if (format === 'pdf') {
         toast.loading('Generating PDF...', { id: 'pdf-export' });
