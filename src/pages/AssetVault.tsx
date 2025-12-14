@@ -107,7 +107,8 @@ export default function AssetVault() {
       loadMetrics();
       loadNarratives();
     }
-  }, [organizationId, loadMetrics, loadNarratives]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationId]);
 
   const filteredMetrics = metrics.filter((m) =>
     m.label.toLowerCase().includes(searchQuery.toLowerCase())
