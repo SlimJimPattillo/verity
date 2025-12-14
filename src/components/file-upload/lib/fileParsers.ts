@@ -10,8 +10,8 @@ import type {
   ParsedRow,
   ParsedData,
   ProgressUpdate,
-  ProgressPhase,
 } from './fileUploadTypes';
+import { ProgressPhase } from './fileUploadTypes';
 import { sanitizeRow, sanitizeMetric } from './sanitization';
 import { validateRow } from './fileValidation';
 import { decodeText, removeBOM, normalizeLineEndings } from './encodingDetection';
