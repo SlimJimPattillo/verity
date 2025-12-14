@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Utensils, GraduationCap, Heart, PawPrint, Globe, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
@@ -73,13 +73,13 @@ export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeMod
               <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
                 <VerityLogo className="h-14 w-14" inverted />
               </div>
-              
-              <h1 className="mb-3 text-4xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
+
+              <DialogTitle className="mb-3 text-4xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
                 Welcome to Verity
-              </h1>
-              <p className="mx-auto mb-10 max-w-md text-lg text-primary-foreground/80">
+              </DialogTitle>
+              <DialogDescription className="mx-auto mb-10 max-w-md text-lg text-primary-foreground/80">
                 Your nonprofit's impact, beautifully told. Let's set up your workspace in 30 seconds.
-              </p>
+              </DialogDescription>
 
               {/* Benefits */}
               <div className="mx-auto mb-10 max-w-sm space-y-3 text-left">
@@ -120,12 +120,12 @@ export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeMod
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                     <Sparkles className="h-6 w-6 text-primary" />
                   </div>
-                  <h2 className="mb-2 text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  <DialogTitle className="mb-2 text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
                     First, what's your name?
-                  </h2>
-                  <p className="text-muted-foreground">
+                  </DialogTitle>
+                  <DialogDescription className="text-muted-foreground">
                     We'll personalize your dashboard experience.
-                  </p>
+                  </DialogDescription>
                 </div>
 
                 <div className="space-y-6">
@@ -162,12 +162,12 @@ export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeMod
 
             <div className="p-8 pt-4">
               <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <DialogTitle className="mb-2 text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
                   What type of organization are you?
-                </h2>
-                <p className="text-muted-foreground">
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground">
                   We'll customize your metrics, templates, and AI suggestions.
-                </p>
+                </DialogDescription>
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
