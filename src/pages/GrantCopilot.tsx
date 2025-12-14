@@ -73,6 +73,8 @@ export default function GrantCopilot() {
     if (organizationId) {
       loadMetrics();
       loadOrgName();
+    } else {
+      setLoadingMetrics(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);

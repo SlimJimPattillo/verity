@@ -106,6 +106,8 @@ export default function AssetVault() {
     if (organizationId) {
       loadMetrics();
       loadNarratives();
+    } else {
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);

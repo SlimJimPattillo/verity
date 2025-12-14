@@ -79,6 +79,8 @@ export default function Settings() {
     if (organizationId) {
       loadOrganizationSettings();
       loadUserProfile();
+    } else {
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
