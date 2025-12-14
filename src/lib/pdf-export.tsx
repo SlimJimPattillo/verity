@@ -174,15 +174,39 @@ export const ReportPDF = ({
  */
 export async function generatePDF(props: ReportPDFProps): Promise<void> {
   try {
+    console.log('Starting PDF generation with props:', {
+      title: props.title,
+      metricsCount: props.metrics.length,
+      organizationName: props.organizationName
+    });
+
     const blob = await pdf(<ReportPDF {...props} />).toBlob();
+
+    if (!blob) {
+      throw new Error('PDF blob generation failed');
+    }
+
+    console.log('PDF blob created, size:', blob.size);
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `${props.title.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+    document.body.appendChild(link); // Add to DOM for better browser compatibility
     link.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+
+    // Cleanup after a short delay to ensure download starts
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    console.log('PDF download triggered successfully');
   } catch (error) {
     console.error('Error generating PDF:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate PDF: ${error.message}`);
+    }
     throw new Error('Failed to generate PDF');
   }
 }
@@ -208,21 +232,33 @@ export async function generatePNG(props: ReportPDFProps): Promise<void> {
       scale: 2, // Higher quality
       logging: false,
       useCORS: true,
+      allowTaint: true,
+      imageTimeout: 0,
     });
 
-    // Convert canvas to blob and download
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        throw new Error('Failed to create image blob');
-      }
+    // Convert canvas to blob and download - wrap in Promise to properly await
+    await new Promise<void>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Failed to create image blob'));
+          return;
+        }
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${props.title.replace(/\s+/g, '-').toLowerCase()}.png`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }, 'image/png');
+        try {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${props.title.replace(/\s+/g, '-').toLowerCase()}.png`;
+          document.body.appendChild(link); // Add to DOM for Firefox compatibility
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }, 'image/png');
+    });
   } catch (error) {
     console.error('Error generating PNG:', error);
     throw new Error('Failed to generate PNG. Make sure the preview is visible and try again.');

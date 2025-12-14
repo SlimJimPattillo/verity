@@ -252,22 +252,35 @@ export default function ReportBuilder() {
   };
 
   const handleExport = async (format: "pdf" | "png" | "share") => {
+    console.log('handleExport called with format:', format);
+    console.log('Current state:', {
+      organizationId,
+      metricsCount: metrics.length,
+      title,
+      currentReportId
+    });
+
     try {
       // Validate required data
       if (!organizationId) {
+        console.error('Export failed: No organizationId');
         toast.error('Organization not found. Please log in again.');
         return;
       }
 
       if (metrics.length === 0) {
+        console.error('Export failed: No metrics');
         toast.error('Please add at least one metric before exporting.');
         return;
       }
 
       if (!title.trim()) {
+        console.error('Export failed: No title');
         toast.error('Please add a report title before exporting.');
         return;
       }
+
+      console.log('Validation passed, starting save...');
 
       // Save before exporting
       toast.loading('Saving report...', { id: 'save-before-export' });
