@@ -3,31 +3,17 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentActivityTable } from "@/components/dashboard/RecentActivityTable";
 import { GetStartedCard } from "@/components/dashboard/GetStartedCard";
-import { GettingStartedWidget } from "@/components/dashboard/GettingStartedWidget";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { mockUser, mockReports } from "@/lib/mockData";
-import { sectorConfigs, Sector } from "@/lib/sectorData";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import verityLogoImg from "@/assets/verity-logo.png";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const greeting = getGreeting();
-  const showEmptyState = false;
-  
-  const {
-    showWelcomeModal,
-    selectedSector,
-    userName,
-    completedSteps,
-    progressPercent,
-    isComplete,
-    selectSector,
-    setUserName,
-    dismissOnboarding,
-  } = useOnboarding();
+  const { user, organizationId } = useAuth();
+  const showWelcomeModal = user && !organizationId;
 
   function getGreeting() {
     const hour = new Date().getHours();
@@ -36,26 +22,10 @@ export default function Dashboard() {
     return "Good evening";
   }
 
-  const handleSectorSelect = (sector: Sector) => {
-    selectSector(sector);
-    const config = sectorConfigs[sector];
-    toast.success(`We've pre-loaded a ${config.label} template for you!`, {
-      description: "Your metrics and narrative have been customized.",
-    });
-  };
-
-  const metricsCount = selectedSector 
-    ? sectorConfigs[selectedSector].metrics.length 
-    : 5;
-
   return (
     <div className="animate-fade-in p-6 lg:p-8">
       {/* Welcome Modal */}
-      <WelcomeModal 
-        open={showWelcomeModal} 
-        onSelectSector={handleSectorSelect}
-        onSetUserName={setUserName}
-      />
+      <WelcomeModal open={showWelcomeModal} />
 
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -76,18 +46,6 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-          {/* Getting Started Widget - only show if not dismissed */}
-          {!isComplete && completedSteps.sectorSelected && (
-            <div className="w-full sm:w-72">
-              <GettingStartedWidget
-                progressPercent={progressPercent}
-                completedSteps={completedSteps}
-                onDismiss={dismissOnboarding}
-              />
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Quick Stats */}
@@ -106,7 +64,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Assets in Vault"
-          value={metricsCount}
+          value={0}
           icon={<Database className="h-5 w-5" />}
         />
       </div>
@@ -123,9 +81,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      {showEmptyState ? (
-        <GetStartedCard onSelectTemplate={(id) => console.log("Selected:", id)} />
-      ) : (
+      {organizationId ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
@@ -134,6 +90,15 @@ export default function Dashboard() {
             </Button>
           </div>
           <RecentActivityTable reports={mockReports} />
+        </div>
+      ) : (
+        <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-foreground">Welcome to Verity!</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Complete the setup to get started with your workspace.
+            </p>
+          </div>
         </div>
       )}
     </div>

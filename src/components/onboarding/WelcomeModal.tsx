@@ -2,15 +2,17 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Utensils, GraduationCap, Heart, PawPrint, Globe, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { Utensils, GraduationCap, Heart, PawPrint, Globe, ArrowRight, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
 import { Sector } from "@/lib/sectorData";
 import { cn } from "@/lib/utils";
 import { VerityLogo } from "@/components/icons/VerityLogo";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface WelcomeModalProps {
   open: boolean;
-  onSelectSector: (sector: Sector) => void;
-  onSetUserName: (name: string) => void;
+  onComplete?: () => void;
 }
 
 const sectors: { id: Sector; label: string; icon: React.ElementType; description: string; color: string }[] = [
@@ -27,14 +29,15 @@ const benefits = [
   "Professional impact report designs",
 ];
 
-export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeModalProps) {
+export function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
+  const { user } = useAuth();
   const [step, setStep] = useState<"welcome" | "name" | "sector">("welcome");
   const [name, setName] = useState("");
   const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const handleNameSubmit = () => {
     if (name.trim()) {
-      onSetUserName(name.trim());
       setStep("sector");
     }
   };
@@ -45,12 +48,52 @@ export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeMod
     }
   };
 
-  const handleSectorSelect = (sectorId: Sector) => {
+  const handleSectorSelect = async (sectorId: Sector) => {
+    if (!user || creating) return;
+
     setSelectedSector(sectorId);
-    // Small delay for visual feedback before closing
-    setTimeout(() => {
-      onSelectSector(sectorId);
-    }, 300);
+    setCreating(true);
+
+    try {
+      // 1. Create organization
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: `${name.trim()}'s Organization`,
+          sector: sectorId as 'food' | 'education' | 'healthcare' | 'animal' | 'other',
+        })
+        .select()
+        .single();
+
+      if (orgError) throw orgError;
+
+      // 2. Create user profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          id: user.id,
+          organization_id: orgData.id,
+          full_name: name.trim(),
+        });
+
+      if (profileError) throw profileError;
+
+      toast.success("Welcome to Verity!", {
+        description: "Your workspace has been set up successfully.",
+      });
+
+      // Refresh the page to load the new organization data
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      toast.error("Failed to complete setup", {
+        description: "Please try again or contact support.",
+      });
+      setCreating(false);
+      setSelectedSector(null);
+    }
   };
 
   return (
@@ -212,6 +255,14 @@ export function WelcomeModal({ open, onSelectSector, onSetUserName }: WelcomeMod
                   </button>
                 ))}
               </div>
+
+              {/* Loading state */}
+              {creating && (
+                <div className="mt-6 flex items-center justify-center gap-2 text-primary">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm font-medium">Setting up your workspace...</span>
+                </div>
+              )}
             </div>
           </div>
         )}
