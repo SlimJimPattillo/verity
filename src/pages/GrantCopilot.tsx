@@ -304,7 +304,7 @@ Example: 'Describe how your organization measures the impact of its programs and
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
-              {mockMetrics.map((metric) => (
+              {metrics.map((metric) => (
                 <div
                   key={metric.id}
                   className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2"
