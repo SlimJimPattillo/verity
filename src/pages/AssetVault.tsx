@@ -103,12 +103,8 @@ export default function AssetVault() {
 
   // Load metrics and narratives from Supabase
   useEffect(() => {
-    if (organizationId) {
-      loadMetrics();
-      loadNarratives();
-    } else {
-      setLoading(false);
-    }
+    loadMetrics();
+    loadNarratives();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
 

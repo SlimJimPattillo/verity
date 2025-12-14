@@ -70,12 +70,8 @@ export default function GrantCopilot() {
 
   // Load metrics and org name
   useEffect(() => {
-    if (organizationId) {
-      loadMetrics();
-      loadOrgName();
-    } else {
-      setLoadingMetrics(false);
-    }
+    loadMetrics();
+    loadOrgName();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
 

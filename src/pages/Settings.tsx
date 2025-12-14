@@ -76,12 +76,8 @@ export default function Settings() {
 
   // Load organization settings
   useEffect(() => {
-    if (organizationId) {
-      loadOrganizationSettings();
-      loadUserProfile();
-    } else {
-      setLoading(false);
-    }
+    loadOrganizationSettings();
+    loadUserProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
 

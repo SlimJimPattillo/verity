@@ -106,13 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authError) throw authError;
       if (!authData.user) throw new Error('No user returned from signup');
 
-      // Check if email confirmation is required
-      if (!authData.session) {
-        // Email confirmation is enabled - user needs to verify their email
-        throw new Error('Please check your email to confirm your account before signing in.');
-      }
-
-      // 2. Create organization (only if session exists - email confirmed or confirmation disabled)
+      // 2. Create organization automatically
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .insert({

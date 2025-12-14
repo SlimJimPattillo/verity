@@ -2,9 +2,7 @@ import { FileText, Sparkles, Database, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentActivityTable } from "@/components/dashboard/RecentActivityTable";
-import { GetStartedCard } from "@/components/dashboard/GetStartedCard";
-import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
-import { mockUser, mockReports } from "@/lib/mockData";
+import { mockReports } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import verityLogoImg from "@/assets/verity-logo.png";
@@ -12,8 +10,7 @@ import verityLogoImg from "@/assets/verity-logo.png";
 export default function Dashboard() {
   const navigate = useNavigate();
   const greeting = getGreeting();
-  const { user, organizationId } = useAuth();
-  const showWelcomeModal = user && !organizationId;
+  const { organizationId } = useAuth();
 
   function getGreeting() {
     const hour = new Date().getHours();
@@ -24,8 +21,6 @@ export default function Dashboard() {
 
   return (
     <div className="animate-fade-in p-6 lg:p-8">
-      {/* Welcome Modal */}
-      <WelcomeModal open={showWelcomeModal} />
 
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -81,26 +76,15 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      {organizationId ? (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              View all
-            </Button>
-          </div>
-          <RecentActivityTable reports={mockReports} />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
+          <Button variant="ghost" size="sm" className="text-muted-foreground">
+            View all
+          </Button>
         </div>
-      ) : (
-        <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground">Welcome to Verity!</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Complete the setup to get started with your workspace.
-            </p>
-          </div>
-        </div>
-      )}
+        <RecentActivityTable reports={mockReports} />
+      </div>
     </div>
   );
 }
