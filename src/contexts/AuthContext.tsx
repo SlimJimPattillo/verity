@@ -58,10 +58,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user profile:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          userId: userId
+        });
+
+        // PGRST116 = no rows returned (user_profile doesn't exist)
+        if (error.code === 'PGRST116') {
+          console.warn('No user_profile found for user:', userId);
+          console.warn('This user needs to complete onboarding or have their profile created manually.');
+          setOrganizationId(null);
+          setLoading(false);
+          return;
+        }
+
+        throw error;
+      }
+
       setOrganizationId(data?.organization_id ?? null);
     } catch (error) {
-      console.error('Error fetching organization:', error);
+      console.error('Unexpected error fetching organization:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      setOrganizationId(null);
     } finally {
       setLoading(false);
     }
