@@ -74,7 +74,8 @@ export default function GrantCopilot() {
       loadMetrics();
       loadOrgName();
     }
-  }, [organizationId, loadMetrics, loadOrgName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationId]);
 
   const handleGenerate = async () => {
     if (!question.trim()) return;

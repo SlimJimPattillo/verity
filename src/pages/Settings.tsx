@@ -80,7 +80,8 @@ export default function Settings() {
       loadOrganizationSettings();
       loadUserProfile();
     }
-  }, [organizationId, loadOrganizationSettings, loadUserProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationId]);
 
   const saveOrganizationSettings = async () => {
     if (!organizationId) return;
